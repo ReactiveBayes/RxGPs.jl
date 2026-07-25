@@ -22,10 +22,14 @@ where ``b_u = m(x) + \\mathbf{k}_{xu}^\\top(\\mathbf{v} - K_{uu}^{-1}\\mathbf{m}
 and ``A_u = k(x,x) - \\mathbf{k}_{xu}^\\top K_{uu}^{-1} \\mathbf{k}_{xu}``.
 
 **Edges:** `[out, in, v, w, θ]` — output, input, transformed inducing variable, noise precision, kernel hyperparameters.
+
+Note that the node applies a mean-filed factorization constraint by default.
 """
 struct UniSGP end 
 
 @node UniSGP Stochastic [ out, in, v , w, θ] # out: output, in: input,  v: transformed-inducing points Kuu_inv * u , w: precision of process noise 
+
+ReactiveMP.collect_factorisation(::Type{RxGP.UniSGP}, ::Tuple) = ((1,), (2,), (3,), (4,), (5,))
 
 #---- Define average energy ----#
 @average_energy UniSGP (q_out::IN_OUT, q_in::IN_OUT, q_v::MultivariateNormalDistributionsFamily, q_w::NOISE_w, q_θ::PointMass, meta::UniSGPMeta,) = begin

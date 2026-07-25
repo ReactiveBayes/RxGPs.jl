@@ -33,6 +33,7 @@ include("rule/univariate_rules/theta.jl")
 
 include("rule/univariate_dID_rules/out.jl")
 include("rule/univariate_dID_rules/in.jl")
+include("rule/univariate_dID_rules/in_natural_gradient_projection.jl")
 include("rule/univariate_dID_rules/v.jl")
 include("rule/univariate_dID_rules/Wg.jl")
 include("rule/univariate_dID_rules/theta.jl")

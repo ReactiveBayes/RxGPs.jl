@@ -25,10 +25,18 @@ with transformed kernels ``\\tilde{K}_{xu} = \\mathcal{L}_1 k(x, X_u)``, etc.
 Inducing variables ``\\mathbf{v}`` remain in the latent (untransformed) space.
 
 **Edges:** `[out, in, v, Wg, θ]` — output, input, transformed inducing variable, Wishart noise precision, kernel hyperparameters.
+
+Note that the node applies a mean-filed factorization constraint by default.
 """
 struct UniSGP_dID end 
 
 @node UniSGP_dID Stochastic [ out, in, v , Wg, θ] # out: output, in: input,  v: transformed-inducing points Kuu_inv * u , Wg: precision of process noise 
+
+ReactiveMP.collect_factorisation(::Type{RxGP.UniSGP_dID}, ::Tuple) = ((1,), (2,), (3,), (4,), (5,))
+
+default_functional_dependencies(::Type{RxGP.UniSGP_dID}) = RequireMarginalFunctionalDependencies(
+    in = nothing
+)
 
 #---- Define average energy ----#
 @average_energy UniSGP_dID (q_out::IN_OUT, q_in::IN_OUT, q_v::MultivariateNormalDistributionsFamily, q_Wg::NOISE_Wg, q_θ::PointMass, meta::UniSGPMeta,) = begin
