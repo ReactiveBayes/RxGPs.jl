@@ -13,7 +13,7 @@ Posterior predictive distribution at test inputs, per Eq. (30) of the dID-VSGP p
 The operator encoded in meta (`:fn`, `:grad`, `:joint_fn_grad`, or custom) determines the
 output dimension P at each test point:
 
-  - `:fn`            P=1     → means::Vector{Float64},   covs::Vector{Matrix{Float64}}
+  - `:fn`            P=1     → means::Vector{<:AbstractVector}, covs::Vector{<:AbstractMatrix}; each mean is a length-1 vector (use `means[i][1]`)
   - `:grad`          P=D     → same shapes, P-dim entries
   - `:joint_fn_grad` P=1+D   → same shapes, P-dim entries
 
