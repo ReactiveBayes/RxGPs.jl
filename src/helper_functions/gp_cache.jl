@@ -38,7 +38,7 @@ end
 Retrieve (or lazily allocate) a cached `LowerTriangular` matrix from `cache`.
 """
 function getcache_lowermatrix(cache::GPCache, label::Tuple{Symbol, Int})
-    return get!(() -> LowerTriangular{Float64}(rand(label[2],label[2])), cache.cache_LowerTriangular, label)
+    return get!(() -> LowerTriangular{Float64}(Matrix{Float64}(undef, label[2], label[2])), cache.cache_LowerTriangular, label)
 end
 
 """
