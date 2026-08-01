@@ -45,7 +45,7 @@ function neg_log_backwardmess_fast(θ; ω_data::Union{Nothing,AbstractVector{<:A
     ## ========== y data ============ ##
     if !isnothing(y_data)
         w_bar = mean(q_w)
-        μ_y_ = typeof(y_data[1]) == Union{MultivariateNormalDistributionsFamily, PointMass} ? mean.(y_data) : y_data
+        μ_y_ = y_data[1] isa Union{PointMass, MultivariateNormalDistributionsFamily} ? mean.(y_data) : y_data
         
         if x_y_data[1] isa Distribution
             Ψ0_ = approximate_kernel_expectation.(Ref(method), (x) -> kernelmatrix(kernel(θ), [x], [x]), x_y_data) |> x -> getindex.(x,1)
@@ -83,7 +83,7 @@ function neg_log_backwardmess_fast(θ; ω_data::Union{Nothing,AbstractVector{<:A
 
     ## ========== ω data ============ ##
     if !isnothing(ω_data)
-        μ_ω_ = typeof(ω_data[1]) == Union{MultivariateNormalDistributionsFamily, PointMass} ? mean.(ω_data) : ω_data
+        μ_ω_ = ω_data[1] isa Union{PointMass, MultivariateNormalDistributionsFamily} ? mean.(ω_data) : ω_data
         Wg_bar = mean(q_Wg)
         if x_ω_data[1] isa Distribution
             Ω0_ = approximate_kernel_expectation.(Ref(method), (x) -> Kxx_fn(x, θ), x_ω_data)
