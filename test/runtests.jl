@@ -1,4 +1,4 @@
-using TestItemRunner, Test, MessagePassingRulesTestUtils, RxGP, Aqua
+using TestItemRunner, Test, MessagePassingRulesTestUtils, RxGPs, Aqua
 
 # Selection, as in the rule packages: `Pkg.test(test_args = ["node_rule"])` runs one directory,
 # `tag:rules` the items with a tag, `name:UniSGP` the items whose name contains the text.
@@ -33,11 +33,11 @@ test_item_filter(ti) = is_selected(ti) || (FILTERED_OUT[] = true; false)
 if !FILTERED_OUT[]
     # Every rule and average energy must be selected by some test: a table case or a direct call.
     @testset "rule coverage" begin
-        gaps = check_rule_coverage(RxGP)
+        gaps = check_rule_coverage(RxGPs)
         foreach(println, gaps)
         @test isempty(gaps)
     end
     @testset "Aqua" begin
-        Aqua.test_all(RxGP)
+        Aqua.test_all(RxGPs)
     end
 end

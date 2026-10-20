@@ -1,6 +1,6 @@
 # [Type aliases](@id types-reference)
 
-RxGP defines several type aliases used throughout the message passing rules to constrain method signatures.
+RxGPs defines several type aliases used throughout the message passing rules to constrain method signatures.
 
 | Alias | Union members | Used for |
 |:------|:-------------|:---------|

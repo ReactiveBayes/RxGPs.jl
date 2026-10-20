@@ -1,10 +1,10 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Helper utilities](@id helpers-reference)
 
-RxGP exports several utility functions used throughout the message passing rules and by end users.
+RxGPs exports several utility functions used throughout the message passing rules and by end users.
 
 ## Mean function application
 

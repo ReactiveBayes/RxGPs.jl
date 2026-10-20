@@ -1,18 +1,18 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
-# RxGP.jl
+# RxGPs.jl
 
 *Julia package for sparse Gaussian process inference via reactive message passing on factor graphs.*
 
-RxGP provides custom factor nodes and message passing update rules for Sparse Variational Gaussian Process (SVGP) models within the [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl) ecosystem. It enables efficient, scalable GP regression and GP state-space modelling by embedding sparse GP computations directly into a factor graph, where inference is performed automatically through message passing.
+RxGPs provides custom factor nodes and message passing update rules for Sparse Variational Gaussian Process (SVGP) models within the [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl) ecosystem. It enables efficient, scalable GP regression and GP state-space modelling by embedding sparse GP computations directly into a factor graph, where inference is performed automatically through message passing.
 
-## Why RxGP?
+## Why RxGPs?
 
 Gaussian processes are powerful non-parametric models, but standard GP inference scales cubically in the number of observations. Sparse variational approximations reduce this cost by introducing a small set of **inducing points**, but integrating sparse GPs into larger probabilistic models (e.g. state-space models) typically requires custom, hand-derived inference algorithms.
 
-RxGP solves this by packaging the sparse GP computation into dedicated **factor nodes** — [`UniSGP`](@ref), [`UniSGP_dID`](@ref), and [`MultiSGP`](@ref) — that plug directly into the [ReactiveMP.jl](https://github.com/ReactiveBayes/ReactiveMP.jl) message passing engine. This means you can:
+RxGPs solves this by packaging the sparse GP computation into dedicated **factor nodes** — [`UniSGP`](@ref), [`UniSGP_dID`](@ref), and [`MultiSGP`](@ref) — that plug directly into the [ReactiveMP.jl](https://github.com/ReactiveBayes/ReactiveMP.jl) message passing engine. This means you can:
 
 - **Compose** GP components with arbitrary probabilistic model elements (state-space dynamics, switching models, etc.) using standard [GraphPPL.jl](https://github.com/ReactiveBayes/GraphPPL.jl) syntax.
 - **Infer** all latent variables (function values, inducing variables, noise precisions, hyperparameters, and uncertain inputs) jointly via variational message passing — no manual derivations required.

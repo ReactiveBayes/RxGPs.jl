@@ -1,19 +1,19 @@
-using RxGP
+using RxGPs
 using Documenter
 
 ## https://discourse.julialang.org/t/generation-of-documentation-fails-qt-qpa-xcb-could-not-connect-to-display/60988
 ## https://gr-framework.org/workstations.html#no-output
 ENV["GKSwstype"] = "100"
 
-DocMeta.setdocmeta!(RxGP, :DocTestSetup, :(using RxGP); recursive=true)
+DocMeta.setdocmeta!(RxGPs, :DocTestSetup, :(using RxGPs); recursive=true)
 
 makedocs(;
-    modules=[RxGP],
+    modules=[RxGPs],
     authors="HoangMHNguyen <m.h.n.hoang@tue.nl>, ofSingularMind <a.h.ledbetter@tue.nl>, and contributors",
-    sitename="RxGP.jl",
+    sitename="RxGPs.jl",
     checkdocs = :exports,
     format=Documenter.HTML(;
-        canonical="https://ReactiveBayes.github.io/RxGP.jl",
+        canonical="https://ReactiveBayes.github.io/RxGPs.jl",
         edit_link="main",
         assets=[
             "assets/header.css",
@@ -45,6 +45,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/ReactiveBayes/RxGP.jl",
+    repo="github.com/ReactiveBayes/RxGPs.jl",
     devbranch="main",
 )

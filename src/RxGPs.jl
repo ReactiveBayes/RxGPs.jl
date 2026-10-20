@@ -1,4 +1,4 @@
-module RxGP
+module RxGPs
 
 using MessagePassingRulesBase, BayesBase, ExponentialFamily, Distributions
 using MessagePassingRulesBase: AbstractAlgorithm, diageye

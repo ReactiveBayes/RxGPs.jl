@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Cache utilities](@id cache-reference)

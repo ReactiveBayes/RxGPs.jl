@@ -1,6 +1,6 @@
 # Inference with RxInfer, the docs' sparse GP regression: one E-step with fixed hyperparameters.
 @testsnippet GPRegression begin
-    using RxGP, RxInfer, KernelFunctions, LinearAlgebra, StableRNGs
+    using RxGPs, RxInfer, KernelFunctions, LinearAlgebra, StableRNGs
 
     function gp_regression_problem()
         rng = StableRNG(42)
@@ -43,7 +43,7 @@ end
 @testitem "engine/UniSGP regression matches ReactiveMP 6" setup = [GPRegression] tags = [:engine] begin
     problem = gp_regression_problem()
     result = run_gp_regression(problem, problem.meta)
-    # recorded with RxGP on ReactiveMP 6.6.0 and RxInfer 5.5.3
+    # recorded with RxGPs on ReactiveMP 6.6.0 and RxInfer 5.5.3
     @test result.free_energy ≈ [10.862558488737307, 6.348928526502817, 6.10955343265357, 6.101703667728231, 6.101473116863275] rtol = 1e-10
     @test issorted(result.free_energy; rev = true)
 end

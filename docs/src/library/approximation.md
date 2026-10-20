@@ -1,10 +1,10 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Approximation methods](@id approximation-reference)
 
-When the input ``x`` to a GP node is itself uncertain (i.e. a distribution rather than a point), kernel expectations of the form ``\mathbb{E}_{q(x)}[k(x, x')]`` must be approximated. RxGP provides approximation methods for this purpose.
+When the input ``x`` to a GP node is itself uncertain (i.e. a distribution rather than a point), kernel expectations of the form ``\mathbb{E}_{q(x)}[k(x, x')]`` must be approximated. RxGPs provides approximation methods for this purpose.
 
 ## Generalized Unscented Transform
 

@@ -1,23 +1,23 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Getting started](@id getting-started)
 
-This guide walks you through installing RxGP, building a simple sparse GP regression model, and running inference.
+This guide walks you through installing RxGPs, building a simple sparse GP regression model, and running inference.
 
 ## Installation
 
 ```julia
 using Pkg
-Pkg.add("RxGP")
+Pkg.add("RxGPs")
 ```
 
-RxGP declares its nodes and rules with [MessagePassingRulesBase.jl](https://github.com/ReactiveBayes/MessagePassingRulesBase.jl), runs in [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl) 6 and later, and uses [KernelFunctions.jl](https://github.com/JuliaGaussianProcesses/KernelFunctions.jl), which will be installed automatically.
+RxGPs declares its nodes and rules with [MessagePassingRulesBase.jl](https://github.com/ReactiveBayes/MessagePassingRulesBase.jl), runs in [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl) 6 and later, and uses [KernelFunctions.jl](https://github.com/JuliaGaussianProcesses/KernelFunctions.jl), which will be installed automatically.
 
 ## Overview of the approach
 
-RxGP implements **Sparse Variational Gaussian Process** (SVGP) inference as factor nodes in a factor graph. The key idea is:
+RxGPs implements **Sparse Variational Gaussian Process** (SVGP) inference as factor nodes in a factor graph. The key idea is:
 
 1. Place a small set of **inducing points** ``\mathbf{X}_u = \{x_{u,1}, \ldots, x_{u,M}\}`` in the input space.
 2. Define a **transformed inducing variable** ``\mathbf{v} = K_{uu}^{-1}\mathbf{u}``, where ``\mathbf{u} = f(\mathbf{X}_u)`` and ``K_{uu} = k(\mathbf{X}_u, \mathbf{X}_u)``.
@@ -27,7 +27,7 @@ RxGP implements **Sparse Variational Gaussian Process** (SVGP) inference as fact
 ## Quick example: GP regression
 
 ```julia
-using RxInfer, RxGP, KernelFunctions, Plots, Random
+using RxInfer, RxGPs, KernelFunctions, Plots, Random
 
 # --- Generate data ---
 Random.seed!(42)

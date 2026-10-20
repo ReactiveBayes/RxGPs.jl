@@ -1,10 +1,10 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Kernel specification](@id kernels-reference)
 
-RxGP builds on [KernelFunctions.jl](https://github.com/JuliaGaussianProcesses/KernelFunctions.jl) and provides utilities for constructing parameterised kernels, computing their gradient and Hessian operators, and initialising hyperparameters.
+RxGPs builds on [KernelFunctions.jl](https://github.com/JuliaGaussianProcesses/KernelFunctions.jl) and provides utilities for constructing parameterised kernels, computing their gradient and Hessian operators, and initialising hyperparameters.
 
 ## Building a kernel
 
@@ -31,7 +31,7 @@ The `independent_SE_lengthscales` flag controls whether each input dimension get
 
 ## Gradient and Hessian kernel functions
 
-For derivative observation models (`:grad` and `:joint_fn_grad` operators), RxGP needs the gradient and Hessian of the kernel with respect to the input:
+For derivative observation models (`:grad` and `:joint_fn_grad` operators), RxGPs needs the gradient and Hessian of the kernel with respect to the input:
 
 ```@docs
 get_gradient_Kxu_fn

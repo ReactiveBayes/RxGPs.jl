@@ -1,5 +1,5 @@
 @testsnippet pred_snippet begin
-    using RxGP
+    using RxGPs
     using RxInfer
     using Random
     using Distributions

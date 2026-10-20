@@ -1,13 +1,13 @@
 # [Contributing](@id contributing-guide)
 
-Contributions to RxGP.jl are welcome! This page covers how to get started.
+Contributions to RxGPs.jl are welcome! This page covers how to get started.
 
 ## Setting up a development environment
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/ReactiveBayes/RxGP.jl.git
-   cd RxGP.jl
+   git clone https://github.com/ReactiveBayes/RxGPs.jl.git
+   cd RxGPs.jl
    ```
 
 2. Activate and instantiate the project:

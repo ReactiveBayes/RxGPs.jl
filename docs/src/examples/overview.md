@@ -1,10 +1,10 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Examples](@id examples-overview)
 
-RxGP ships with Jupyter notebook examples in the `examples/` directory of the repository. These demonstrate end-to-end workflows for common GP modelling scenarios.
+RxGPs ships with Jupyter notebook examples in the `examples/` directory of the repository. These demonstrate end-to-end workflows for common GP modelling scenarios.
 
 ## GP Regression
 
@@ -41,7 +41,7 @@ GP regression that incorporates **derivative observations** alongside function-v
     ```julia
     using Pkg
     Pkg.activate("examples")
-    Pkg.develop(PackageSpec(path="."))   # link local RxGP
+    Pkg.develop(PackageSpec(path="."))   # link local RxGPs
     Pkg.instantiate()
     ```
     On subsequent sessions, only `Pkg.activate("examples")` is needed before opening a notebook.

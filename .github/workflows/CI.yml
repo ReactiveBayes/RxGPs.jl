@@ -71,6 +71,6 @@ jobs:
         shell: julia --project=docs --color=yes {0}
         run: |
           using Documenter: DocMeta, doctest
-          using RxGP
-          DocMeta.setdocmeta!(RxGP, :DocTestSetup, :(using RxGP); recursive=true)
-          doctest(RxGP)
+          using RxGPs
+          DocMeta.setdocmeta!(RxGPs, :DocTestSetup, :(using RxGPs); recursive=true)
+          doctest(RxGPs)

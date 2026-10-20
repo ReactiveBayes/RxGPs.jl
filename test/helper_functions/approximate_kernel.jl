@@ -1,5 +1,5 @@
 @testsnippet setup_snippet begin
-    using RxGP
+    using RxGPs
     using RxInfer
     using Random
     using Distributions
@@ -38,8 +38,8 @@
 end
 
 @testitem "helper_functions/approximate_kernel/approximate_kernel_expectation" setup=[setup_snippet] begin
-    using RxGP, RxInfer, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
-    import RxGP: approximate_kernel_expectation, approximate_kernel_expectation!
+    using RxGPs, RxInfer, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
+    import RxGPs: approximate_kernel_expectation, approximate_kernel_expectation!
     
     ctx = test_fixture(;D=1)
     method = ctx.method
@@ -81,8 +81,8 @@ end
 end
 
 @testitem "helper_functions/approximate_kernel/GP quantities approximation" setup=[setup_snippet] begin
-    using RxGP, RxInfer, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
-    import RxGP: approximate_kernel_expectation, approximate_kernel_expectation!
+    using RxGPs, RxInfer, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
+    import RxGPs: approximate_kernel_expectation, approximate_kernel_expectation!
 
     ctx = test_fixture(;D=3)
     meta = ctx.meta

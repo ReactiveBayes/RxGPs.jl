@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Meta objects](@id meta-reference)

@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Prediction](@id prediction-reference)

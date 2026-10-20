@@ -1,12 +1,12 @@
-# RxGP.jl
+# RxGPs.jl
 
-<!--[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://ReactiveBayes.github.io/RxGP.jl/stable/)-->
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://ReactiveBayes.github.io/RxGP.jl/dev/)
-[![Build Status](https://github.com/ReactiveBayes/RxGP.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/ReactiveBayes/RxGP.jl/actions/workflows/CI.yml?query=branch%3Amain)
+<!--[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://ReactiveBayes.github.io/RxGPs.jl/stable/)-->
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://ReactiveBayes.github.io/RxGPs.jl/dev/)
+[![Build Status](https://github.com/ReactiveBayes/RxGPs.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/ReactiveBayes/RxGPs.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 **Sparse Gaussian process factor nodes for reactive message passing on factor graphs.**
 
-RxGP provides dedicated factor nodes and variational message passing update rules for Sparse Variational Gaussian Process (VSGP) models within the [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl) ecosystem. It lets you embed sparse GP computations directly into a Forney-style factor graph so that inference over all latent variables — inducing variables, noise precisions, hyperparameters, and uncertain inputs — is performed automatically.
+RxGPs provides dedicated factor nodes and variational message passing update rules for Sparse Variational Gaussian Process (VSGP) models within the [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl) ecosystem. It lets you embed sparse GP computations directly into a Forney-style factor graph so that inference over all latent variables — inducing variables, noise precisions, hyperparameters, and uncertain inputs — is performed automatically.
 
 ## Factor Nodes
 
@@ -20,13 +20,13 @@ RxGP provides dedicated factor nodes and variational message passing update rule
 
 ```julia
 using Pkg
-Pkg.add("RxGP")
+Pkg.add("RxGPs")
 ```
 
 Or in development mode:
 
 ```julia
-Pkg.develop(path="path/to/RxGP.jl")
+Pkg.develop(path="path/to/RxGPs.jl")
 ```
 
 ## Quick Start
@@ -34,7 +34,7 @@ Pkg.develop(path="path/to/RxGP.jl")
 Minimal GP regression with an EM loop for hyperparameter optimisation:
 
 ```julia
-using RxInfer, RxGP, BayesBase
+using RxInfer, RxGPs, BayesBase
 using KernelFunctions, LinearAlgebra, Flux
 
 # --- Data ---
@@ -107,7 +107,7 @@ meta_fn = get_UniSGPMeta(D; mean_fn=mean_fn, kernel=kernel, operator=:fn, Xu=Xu,
 means, covs = predict_GP(m_in=xtest, q_v=q_v, q_θ=θ_opt, meta=meta_fn)
 ```
 
-To add **gradient observations**, use `UniSGP_dID` with `operator = :grad` and a Wishart noise prior — see the [full example in the docs](https://ReactiveBayes.github.io/RxGP.jl/stable/examples/usage/).
+To add **gradient observations**, use `UniSGP_dID` with `operator = :grad` and a Wishart noise prior — see the [full example in the docs](https://ReactiveBayes.github.io/RxGPs.jl/stable/examples/usage/).
 
 ## Key Features
 
@@ -119,7 +119,7 @@ To add **gradient observations**, use `UniSGP_dID` with `operator = :grad` and a
 
 ## Documentation
 
-Full documentation is available at **[docs.rxgp.jl](https://ReactiveBayes.github.io/RxGP.jl/stable/)**.
+Full documentation is available at **[docs.rxgp.jl](https://ReactiveBayes.github.io/RxGPs.jl/stable/)**.
 
 ## Examples
 
@@ -128,7 +128,7 @@ Jupyter notebooks are provided in the `examples/` directory. To run them, set up
 ```julia
 using Pkg
 Pkg.activate("examples")
-Pkg.develop(PackageSpec(path="."))   # link local RxGP
+Pkg.develop(PackageSpec(path="."))   # link local RxGPs
 Pkg.instantiate()
 ```
 

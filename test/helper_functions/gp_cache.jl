@@ -1,4 +1,4 @@
-using RxGP
+using RxGPs
 using Random
 using LinearAlgebra
 using Test
@@ -7,7 +7,7 @@ using TestItemRunner
 @testitem "helper_functions/gp_cache/TestGPCache" begin
     using StableRNGs
     rng = StableRNG(100)
-    using RxGP, Random, LinearAlgebra, Test
+    using RxGPs, Random, LinearAlgebra, Test
     gpcache = GPCache()
     A = rand(rng, 4,4)
     B = rand(rng, 3,4)

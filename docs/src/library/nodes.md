@@ -1,10 +1,10 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Factor nodes](@id nodes-reference)
 
-RxGP defines three sparse Gaussian process factor nodes. Each node represents a local GP likelihood factor in a factor graph, with message passing rules defined on every edge.
+RxGPs defines three sparse Gaussian process factor nodes. Each node represents a local GP likelihood factor in a factor graph, with message passing rules defined on every edge.
 
 ## [Univariate sparse GP node](@id nodes-unisgp)
 

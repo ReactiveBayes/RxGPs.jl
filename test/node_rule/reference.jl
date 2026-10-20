@@ -7,7 +7,7 @@
 # and its log (or log-determinant), so their means suffice. The expectation over the input is the
 # meta's own Gauss–Hermite rule, the one the rules use, so the two agree to rounding.
 @testmodule SGPReference begin
-    using RxGP, RxInfer, KernelFunctions, LinearAlgebra, StableRNGs, Distributions
+    using RxGPs, RxInfer, KernelFunctions, LinearAlgebra, StableRNGs, Distributions
     using MessagePassingRulesApproximations: getweights, getpoints
     using ExponentialFamily: WishartFast
 
@@ -93,7 +93,7 @@
     # E_q[log f] with the target fixed to `t`; the others are integrated
     function expected_logf(node, meta, q::NamedTuple, target, t)
         θ = target === :θ ? t : mean(q.θ)
-        K = kernelmatrix(getKernel(meta)(θ), getInducingInput(meta)) + RxGP.KUU_JITTER * I
+        K = kernelmatrix(getKernel(meta)(θ), getInducingInput(meta)) + RxGPs.KUU_JITTER * I
         noise_name = noisename(node)
         nbar, lognbar = target === noise_name ? (t, t isa Number ? log(t) : logdet(t)) : noise(q[noise_name])
         rest = NamedTuple(k => (k === target ? t : q[k]) for k in (:out, :in, :v) )
@@ -176,7 +176,7 @@
         θ = [1.0, 1.2]
         Xu = vec([[Float64(i), Float64(j)] for i in 1:3, j in 1:3])
         kernel = θ -> θ[1] * with_lengthscale(SEKernel(), θ[2])
-        Kuu_inverse = inv(kernelmatrix(kernel(θ), Xu) + RxGP.KUU_JITTER * I)
+        Kuu_inverse = inv(kernelmatrix(kernel(θ), Xu) + RxGPs.KUU_JITTER * I)
         meta = MultiSGPMeta(ghcubature(7), Xu, Kuu_inverse, kernel)
         M, D = length(Xu), 2
         q_v = MvNormalMeanCovariance(randn(rng, M * D), (A = randn(rng, M * D, M * D); A * A' / (M * D) + 0.5I))

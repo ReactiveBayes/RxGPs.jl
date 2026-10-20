@@ -1,14 +1,14 @@
-using RxGP, RxInfer
+using RxGPs, RxInfer
 using Random, Distributions, StableRNGs
 using KernelFunctions, LinearAlgebra
 using Test
 using TestItemRunner
 
-import RxGP: sum_diagonal_M, trace_blkmatrix
+import RxGPs: sum_diagonal_M, trace_blkmatrix
 
 @testitem "helper_functions/derivative/UniDerivative" begin
-    using RxGP, RxInfer, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
-    import RxGP: approximate_kernel_expectation, approximate_kernel_expectation!
+    using RxGPs, RxInfer, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
+    import RxGPs: approximate_kernel_expectation, approximate_kernel_expectation!
     rng = StableRNG(200)
 
     D = 1

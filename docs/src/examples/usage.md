@@ -1,11 +1,11 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Usage Examples](@id examples-usage)
 
 This page contains **executable** examples that run during the documentation build.
-Every code block below is a live `@example` — the output you see is produced by the actual RxGP code.
+Every code block below is a live `@example` — the output you see is produced by the actual RxGPs code.
 
 ## GP Regression with Function Observations
 
@@ -14,7 +14,7 @@ A minimal sparse GP regression using [`UniSGP`](@ref) nodes.
 ### 1. Generate synthetic data
 
 ```@example gpr
-using RxInfer, RxGP
+using RxInfer, RxGPs
 using BayesBase
 using KernelFunctions, LinearAlgebra, Random, Plots, StableRNGs
 

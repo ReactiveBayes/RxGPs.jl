@@ -1,5 +1,5 @@
 ﻿@testsnippet test_snippet begin
-    using RxGP
+    using RxGPs
     using RxInfer
     using Random
     using Distributions
@@ -37,7 +37,7 @@ end
 @testitem "helper_functions/other_functions/TestOtherFunction" setup=[test_snippet] begin
     using StableRNGs
     rng = StableRNG(300)
-    using RxGP, Random, LinearAlgebra, Test
+    using RxGPs, Random, LinearAlgebra, Test
     A = rand(rng, 4,4)
     blk_A = [A[1:2,1:2], A[3:4,1:2], A[1:2,3:4],A[3:4,3:4]]
     a = rand(rng, 4)
