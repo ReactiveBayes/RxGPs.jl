@@ -1,5 +1,5 @@
 export GPCache
-export getcache, getcache_lowermatrix
+export getcache
 export mul_A_B!, mul_A_B_A!, mul_A_B_At!, mul_A_v!
 #---- Define cache ----#
 
@@ -7,16 +7,15 @@ export mul_A_B!, mul_A_B_A!, mul_A_B_At!, mul_A_v!
     GPCache
 
 Pre-allocated matrix/vector storage to avoid repeated heap allocations during message passing.
-Holds dictionaries for matrices, vectors, and lower-triangular factors keyed by `(Symbol, size)` tuples.
+Holds dictionaries for matrices and vectors keyed by `(Symbol, size)` tuples.
 Create with `GPCache()`.
 """
 struct GPCache
     cache_matrices::Dict{Tuple{Symbol, Tuple{Int, Int}}, Matrix{Float64}}
     cache_vectors::Dict{Tuple{Symbol, Int}, Vector{Float64}}
-    cache_LowerTriangular::Dict{Tuple{Symbol,Int}, LowerTriangular{Float64, Matrix{Float64}}}
 end
 
-GPCache() = GPCache(Dict{Tuple{Symbol, Tuple{Int, Int}}, Matrix{Float64}}(), Dict{Tuple{Symbol, Int}, Vector{Float64}}(), Dict{Tuple{Symbol,Int}, LowerTriangular{Float64, Matrix{Float64}}}())
+GPCache() = GPCache(Dict{Tuple{Symbol, Tuple{Int, Int}}, Matrix{Float64}}(), Dict{Tuple{Symbol, Int}, Vector{Float64}}())
 
 """
     getcache(cache::GPCache, label::Tuple{Symbol, Tuple{Int, Int}})
@@ -30,15 +29,6 @@ end
 
 function getcache(cache::GPCache, label::Tuple{Symbol, Int})
     return get!(() -> Vector{Float64}(undef, label[2]), cache.cache_vectors, label)
-end
-
-"""
-    getcache_lowermatrix(cache::GPCache, label::Tuple{Symbol, Int})
-
-Retrieve (or lazily allocate) a cached `LowerTriangular` matrix from `cache`.
-"""
-function getcache_lowermatrix(cache::GPCache, label::Tuple{Symbol, Int})
-    return get!(() -> LowerTriangular{Float64}(Matrix{Float64}(undef, label[2], label[2])), cache.cache_LowerTriangular, label)
 end
 
 """
