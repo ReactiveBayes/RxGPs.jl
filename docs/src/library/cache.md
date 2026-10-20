@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Cache utilities](@id cache-reference)
@@ -12,13 +12,12 @@ The [`GPCache`](@ref) system provides pre-allocated matrix and vector storage to
 GPCache
 ```
 
-A `GPCache` holds three dictionaries, keyed by `(Symbol, size)` tuples:
+A `GPCache` holds two dictionaries, keyed by `(Symbol, size)` tuples:
 
 | Storage | Key type | Value type |
 |:--------|:---------|:-----------|
 | Matrices | `(Symbol, (nrows, ncols))` | `Matrix{Float64}` |
 | Vectors | `(Symbol, length)` | `Vector{Float64}` |
-| Lower-triangular | `(Symbol, dim)` | `LowerTriangular{Float64}` |
 
 Create a new cache with `GPCache()` (all dictionaries start empty; buffers are allocated on first access).
 
@@ -26,7 +25,6 @@ Create a new cache with `GPCache()` (all dictionaries start empty; buffers are a
 
 ```@docs
 getcache
-getcache_lowermatrix
 ```
 
 ## In-place matrix operations

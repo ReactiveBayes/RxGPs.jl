@@ -1,19 +1,20 @@
-using RxGP, RxInfer, ReactiveMP
+using RxGPs, RxInfer
 using Random, Distributions, StableRNGs
 using KernelFunctions, LinearAlgebra
 using Test
 using TestItemRunner
 
-import RxGP: sum_diagonal_M, trace_blkmatrix
+import RxGPs: sum_diagonal_M, trace_blkmatrix
 
 @testitem "helper_functions/derivative/UniDerivative" begin
-    using RxGP, RxInfer, ReactiveMP, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
-    import RxGP: approximate_kernel_expectation, approximate_kernel_expectation!
+    using RxGPs, RxInfer, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
+    import RxGPs: approximate_kernel_expectation, approximate_kernel_expectation!
+    rng = StableRNG(200)
 
     D = 1
     Nu = 10
     Xu = collect(1:Nu)
-    q_v = MvNormalMeanCovariance(rand(Nu) |> (x) -> sin.(x), diageye(Nu))
+    q_v = MvNormalMeanCovariance(rand(rng, Nu) |> (x) -> sin.(x), diageye(Nu))
     q_w = GammaShapeRate(1,1)
     q_Wg = Wishart(D, diageye(D))
     μ_v, Σ_v = mean_cov(q_v)
@@ -90,21 +91,21 @@ import RxGP: sum_diagonal_M, trace_blkmatrix
     f(x) = sum(sin.(x.^2 .- 1) .+ cos.(x))                    # y(x) scalar for any-dimensional x
     ∇f(x) = 2 .* x .* cos.(x.^2 .- 1) .- sin.(x)              # gradient matches size(x)
 
-    x_data_vector = [randn(D) for _ in 1:50]
+    x_data_vector = [randn(rng, D) for _ in 1:50]
     y_data_vector = [f(x) for x in x_data_vector]
     ω_data_vector = [∇f(x) for x in x_data_vector]
     gt_negllh_vector = -sum(gt_logbackwardmess(x, y, ω) for (x, y, ω) in zip(x_data_vector, y_data_vector, ω_data_vector))
     msg_negllh_vector = neg_log_backwardmess_fast(θ_val; ω_data=ω_data_vector, y_data=y_data_vector, x_y_data=x_data_vector, x_ω_data=x_data_vector, q_v=q_v, q_w=q_w, q_Wg=q_Wg, kernel=kernel, Lm_fn=Lm_fn, Kxx_fn=Kxx_fn, Kxu_fn=Kxu_fn, mean_fn=mean_fn, Xu=Xu)
     @test isapprox(gt_negllh_vector, msg_negllh_vector; atol=1e-6)
 
-    x_data_pointmass = [PointMass(randn(D)) for _ in 1:50]
+    x_data_pointmass = [PointMass(randn(rng, D)) for _ in 1:50]
     y_data_pointmass = [f(mean(x)) for x in x_data_pointmass]
     ω_data_pointmass = [∇f(mean(x)) for x in x_data_pointmass]
     gt_negllh_pointmass = -sum(gt_logbackwardmess(x, y, ω) for (x, y, ω) in zip(x_data_pointmass, y_data_pointmass, ω_data_pointmass))
     msg_negllh_pointmass = neg_log_backwardmess_fast(θ_val; ω_data=ω_data_pointmass, y_data=y_data_pointmass, x_y_data=x_data_pointmass, x_ω_data=x_data_pointmass, q_v=q_v, q_w=q_w, q_Wg=q_Wg, kernel=kernel, Lm_fn=Lm_fn, Kxx_fn=Kxx_fn, Kxu_fn=Kxu_fn, mean_fn=mean_fn, Xu=Xu)
     @test isapprox(gt_negllh_pointmass, msg_negllh_pointmass; atol=1e-6)
 
-    x_data_uncertain = [MvNormalMeanCovariance(randn(D), diageye(D)) for _ in 1:50]
+    x_data_uncertain = [MvNormalMeanCovariance(randn(rng, D), diageye(D)) for _ in 1:50]
     y_data_uncertain = [f(mean(x)) for x in x_data_uncertain]
     ω_data_uncertain = [∇f(mean(x)) for x in x_data_uncertain]
     gt_negllh_uncertain = -sum(gt_logbackwardmess(x, y, ω) for (x, y, ω) in zip(x_data_uncertain, y_data_uncertain, ω_data_uncertain))

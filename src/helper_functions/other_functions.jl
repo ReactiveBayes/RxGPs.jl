@@ -80,13 +80,40 @@ end
 
 # ======= Single source of meta information ======= #
 """
-    get_UniSGPMeta(D; method, mean_fn, kernel, kernel_spec=:SE, mode=:AD, operator=:fn, independent_SE_lengthscales=true, Xu, θ, Lm_fn=nothing, Kxu_fn=nothing, Kxx_fn=nothing)
+    get_UniSGPMeta(D; mean_fn, kernel, Xu, θ, method = ghcubature(21), operator = :fn,
+                   kernel_spec = :SE, mode = :AD, independent_SE_lengthscales = true,
+                   Lm_fn = nothing, Kxu_fn = nothing, Kxx_fn = nothing) -> UniSGPMeta
 
-Construct a [`UniSGPMeta`](@ref) for input dimension `D`. This is the recommended constructor.
+The meta of the [`UniSGP`](@ref) and [`UniSGP_dID`](@ref) nodes for inputs of dimension `D`: what a
+model gives them as their algorithm, with `where { algorithm = meta }` or `@algorithm`.
 
-`operator` selects the linear observation operator: `:fn` (identity, P=1), `:grad` (gradient, P=D),
-or `:joint_fn_grad` (stacked, P=1+D). Custom operator functions `Lm_fn`, `Kxu_fn`, `Kxx_fn`
-can be provided to override the default.
+# Keywords
+- `mean_fn`: the prior mean function ``m(x)``, a scalar function of the input.
+- `kernel`: the kernel constructor `θ -> k`, a KernelFunctions.jl kernel; see
+  [`get_simple_kernel_and_params`](@ref).
+- `Xu`: the M inducing inputs, numbers for `D = 1` or vectors of length `D`.
+- `θ`: the kernel hyperparameters at which ``K_{uu}`` is factorised, a vector or a `PointMass`.
+- `method`: the approximation method for the kernel expectations over an uncertain input:
+  `ghcubature(p)`, [`srcubature`](@ref)`()` or [`GenUnscented`](@ref)`()`. With observed inputs it
+  is not used.
+- `operator`: the linear operator applied to the GP for [`UniSGP_dID`](@ref): `:fn` (the function,
+  P = 1), `:grad` (its gradient, P = D) or `:joint_fn_grad` (both stacked, P = 1 + D).
+  [`UniSGP`](@ref) uses `:fn`.
+- `kernel_spec`, `mode`, `independent_SE_lengthscales`: how the operator's kernel derivatives are
+  built: the kernel family, `:AD` (automatic differentiation) or `:AN` (analytic, for `:SE` and
+  `:SEn` only), and whether each input dimension has its own lengthscale.
+- `Lm_fn`, `Kxu_fn`, `Kxx_fn`: a custom operator, given as its three functions (see
+  [`UniSGPMeta`](@ref)); they replace the ones `operator` builds.
+
+!!! note
+    ``K_{uu}`` is factorised once, at the `θ` given here, with the package's ``K_{uu}`` jitter. When
+    `θ` changes, for example between the EM iterations of the README, build the meta again.
+
+# Example
+```julia
+kernel, θ, _ = get_simple_kernel_and_params(1; kernel_spec = :SE)
+meta = get_UniSGPMeta(1; mean_fn = x -> 0.0, kernel = kernel, Xu = collect(range(-4, 4; length = 10)), θ = θ)
+```
 """
 function get_UniSGPMeta(D; method=ghcubature(21), mean_fn, kernel, kernel_spec::Symbol=:SE, mode::Symbol=:AD,
                          operator::Symbol=:fn,
@@ -95,16 +122,9 @@ function get_UniSGPMeta(D; method=ghcubature(21), mean_fn, kernel, kernel_spec::
     θ = typeof(θ) <: PointMass ? mean(θ) : θ
     dims_theta = length(θ)
     dims_input = D
-    Kuu = kernelmatrix(kernel(θ), Xu) + 1e-8 * I
+    Kuu = kernelmatrix(kernel(θ), Xu) + KUU_JITTER * I
     KuuF = cholesky(Kuu)
     x_dummy = zeros(D)
-    Ψx = 0.0
-    Ψxx = 0.0
-    Ψ0 = kernelmatrix(kernel(θ), [x_dummy])[1]
-    Ψ1_trans = kernelmatrix(kernel(θ), Xu, [x_dummy])
-    Ψ2 = kernelmatrix(kernel(θ), Xu, [x_dummy]) * kernelmatrix(kernel(θ), [x_dummy], Xu)
-    Ψ3 = kernelmatrix(kernel(θ), [x_dummy], Xu)
-    Uv = zeros(size(Xu, 1), size(Xu, 1))
 
     if Lm_fn === nothing || Kxu_fn === nothing || Kxx_fn === nothing
         (Lm_fn_default, Kxu_fn_default, Kxx_fn_default, dims_output) =
@@ -118,21 +138,29 @@ function get_UniSGPMeta(D; method=ghcubature(21), mean_fn, kernel, kernel_spec::
         dims_output = length(Lm_fn(x_dummy))
     end
 
-    return UniSGPMeta(method, mean_fn, Xu, Ψx, Ψxx, Ψ0, Ψ1_trans, Ψ2, Ψ3, Lm_fn, Kxx_fn, Kxu_fn, KuuF, kernel, dims_input, dims_output, dims_theta, Uv, 0, 1)
+    return UniSGPMeta(method, mean_fn, Xu, Lm_fn, Kxx_fn, Kxu_fn, KuuF, kernel, dims_input, dims_output, dims_theta)
 end
 
 
 # # ======= Kernel and Mean-Function Diff Functions - GENERAL ======= #
-"""
-    get_gradient_Kxu_fn(D; kernel, kernel_spec=:SE, mode=:AD, independent_SE_lengthscales=true)
+as_vector(x::Number) = [x]
+as_vector(x::AbstractVector) = x
 
-Return a function `(x, θ, Xu) -> Matrix` that computes the gradient of the cross-kernel
-``\\nabla_x k(x, X_u)`` (a `D×M` matrix). Supports `:AD` (autodiff) and `:AN` (analytic, SE only) modes.
 """
-function get_gradient_Kxu_fn(D; kernel::Any=kernel, kernel_spec::Symbol=:SE, mode::Symbol=:AD, independent_SE_lengthscales::Bool=true)
+    get_gradient_Kxu_fn(D; kernel, kernel_spec = :SE, mode = :AD, independent_SE_lengthscales = true)
+
+A function `(x, θ, Xu) -> Matrix`, the gradient of the cross-kernel ``\\nabla_x k(x, X_u)`` (D×M), for
+the gradient operators of [`get_UniSGPMeta`](@ref). `mode = :AD` differentiates `kernel` with
+ForwardDiff and works for every kernel family; `mode = :AN` uses the closed form of the squared
+exponential, for `kernel_spec` `:SE` or `:SEn` only. A scalar input is taken as a 1-vector.
+"""
+function get_gradient_Kxu_fn(D; kernel, kernel_spec::Symbol=:SE, mode::Symbol=:AD, independent_SE_lengthscales::Bool=true)
     if mode == :AD
         # AutoDiff approach
         return (x, θ, Xu) -> begin
+            # ForwardDiff differentiates vectors: a scalar input, and scalar inducing points, become 1-vectors
+            x = as_vector(x)
+            Xu = map(as_vector, Xu)
             D = length(x)
             N = length(Xu)
             f = (x1, x2) -> kernelmatrix(kernel(θ), [x1], [x2])[1]
@@ -194,7 +222,7 @@ function get_gradient_Kxu_fn(D; kernel::Any=kernel, kernel_spec::Symbol=:SE, mod
                 return res
             end
         else
-            error("Currently only SE and SE2 kernels supported for analytic gradient_Kxu_fn")
+            error("analytic (:AN) gradients support the :SE and :SEn kernels only; got kernel_spec = $kernel_spec")
         end
     else
         error("mode must be :AD (AutoDiff) or :AN (Analytic)")
@@ -202,15 +230,17 @@ function get_gradient_Kxu_fn(D; kernel::Any=kernel, kernel_spec::Symbol=:SE, mod
 end
 
 """
-    get_gradient_Kxx_fn(D; kernel, kernel_spec=:SE, mode=:AD, independent_SE_lengthscales=true)
+    get_gradient_Kxx_fn(D; kernel, kernel_spec = :SE, mode = :AD, independent_SE_lengthscales = true)
 
-Return a function `(x, θ) -> Matrix` that computes the Hessian of the auto-kernel
-``\\nabla_x \\nabla_{x'} k(x, x')`` (a `D×D` matrix). Supports `:AD` and `:AN` modes.
+A function `(x, θ) -> Matrix`, the mixed second derivative of the auto-kernel
+``\\nabla_x \\nabla_{x'} k(x, x')`` at ``x' = x`` (D×D): the prior covariance of the GP's gradient.
+The modes are those of [`get_gradient_Kxu_fn`](@ref).
 """
-function get_gradient_Kxx_fn(D; kernel::Any=kernel, kernel_spec::Symbol=:SE, mode::Symbol=:AD, independent_SE_lengthscales::Bool=true)
+function get_gradient_Kxx_fn(D; kernel, kernel_spec::Symbol=:SE, mode::Symbol=:AD, independent_SE_lengthscales::Bool=true)
     if mode == :AD
         # AutoDiff approach
         return (x, θ) -> begin
+            x = as_vector(x)
             f = (x1, x2) -> kernelmatrix(kernel(θ), [x1], [x2])[1]
             g = (x1, x2) -> ForwardDiff.gradient(z -> f(z, x2), x1)
             res = ForwardDiff.jacobian(z -> g(x, z), x)
@@ -271,11 +301,30 @@ end
 
 # # ================== Simple KernelFunctions.jl Kernel Builder (dimension-agnostic) ================== #
 """
-    get_simple_kernel_and_params(D; kernel_spec=:SE, num_SE=1, num_SM=1, independent_SE_lengthscales=true)
+    get_simple_kernel_and_params(D; kernel_spec = :SE, num_SE = 1, num_SM = 1,
+                                 independent_SE_lengthscales = true) -> (kernel, θ_init, dim_θ)
 
-Return `(kernel_fn, θ_init, dim_θ)` for a parameterised kernel in input dimension `D`.
+A kernel constructor `kernel = θ -> k` for inputs of dimension `D`, its initial hyperparameters
+and their number. Every hyperparameter is unconstrained: the kernel applies a softplus to it, so a
+weight or lengthscale is ``\\log(1 + e^{\\theta_i})``, and `θ_init` puts every one near 1.
 
-Supported `kernel_spec` values: `:SE`, `:SEn`, `:SMn`, `:SEn_SMn`.
+# Kernels and the layout of `θ`
+- `:SE`: a weighted squared exponential, `[weight; lengthscales]`, with `D` lengthscales or, with
+  `independent_SE_lengthscales = false`, one.
+- `:SEn`: a sum of `num_SE` of them; with independent lengthscales `θ` holds each component's
+  `[weight; D lengthscales]` in turn, otherwise all weights and then all lengthscales.
+- `:SMn`: a spectral mixture of `num_SM` components, `[weights; scales; means]`, the last two as
+  D×`num_SM` matrices by column.
+- `:SEn_SMn`: the sum of the two, the `:SEn` part first. With shared lengthscales its `:SEn`
+  part alternates weight and lengthscale.
+
+An unknown `kernel_spec` is an `ArgumentError`.
+
+# Example
+```julia
+kernel, θ, dim_θ = get_simple_kernel_and_params(2; kernel_spec = :SE)   # dim_θ == 3
+k = kernel(θ)                                                          # a KernelFunctions.jl kernel
+```
 """
 function get_simple_kernel_and_params(D; kernel_spec::Symbol=:SE, num_SE::Int=1, num_SM::Int=1, independent_SE_lengthscales::Bool=true)
     if kernel_spec == :SE
@@ -370,6 +419,8 @@ function get_simple_kernel_and_params(D; kernel_spec::Symbol=:SE, num_SE::Int=1,
         # Combined kernel
         kernel = (θ) -> kernel_SE(θ[1:SE]) + kernel_SM(θ[SE+1:end])
         return kernel, θ_init, dim_θ
+    else
+        throw(ArgumentError("unknown kernel_spec $kernel_spec: expected :SE, :SEn, :SMn or :SEn_SMn"))
     end
 end
 
@@ -378,12 +429,10 @@ end
 """
     apply_mean_fn(x, mf)
 
-Apply a scalar mean function `mf` to input `x`, handling different input types:
-
-- If `x` is a scalar, apply `mf` directly, e.g. `mf(x) = x^2` gives `apply_mean_fn(3, mf) == 9`.
-- If `x` is a length-1 vector of numbers, apply `mf` to the single element.
-- If `x` is a longer vector of numbers, apply `mf` to the entire vector.
-- If `x` is a vector of vectors, use `apply_mean_fn.(x, mf)` to broadcast over sub-vectors.
+The mean function `mf` at the input `x`, a number or a vector of numbers. A 1-vector is unwrapped,
+so a mean function of one input can be written for a number: with `mf(x) = x^2`,
+`apply_mean_fn(3, mf) == apply_mean_fn([3], mf) == 9`. A longer vector is passed whole. For
+several inputs, broadcast: `apply_mean_fn.(Xu, mf)`.
 """
 apply_mean_fn(x::Number, mf) = mf(x) # scalar
 apply_mean_fn(x::AbstractVector{<:Number}, mf) = begin length(x) == 1 ? mf(x[1]) : mf(x) end # length-1 vector of numbers
@@ -442,7 +491,8 @@ end
 """
     jdotavx(a, b)
 
-Vectorised dot product of arrays `a` and `b` using `LoopVectorization.@turbo`.
+The sum of the products of the elements of `a` and `b`, of the same length, vectorised with
+LoopVectorization's `@turbo`: `dot(a, b)` for real arrays of any shape.
 """
 function jdotavx(a::AbstractArray, b::AbstractArray)
     a_flat, b_flat = collect(vec(a)), collect(vec(b))
@@ -458,7 +508,9 @@ end
 """
     create_blockmatrix(A, d, M)
 
-Return a `d×d` matrix of `M×M` views into the block structure of `A`.
+The (dM)×(dM) matrix `A` as a d×d matrix of views of its M×M blocks: block `(i, j)` is
+`A[(i-1)M+1:iM, (j-1)M+1:jM]`. [`MultiSGP`](@ref) uses it for the second moment of its stacked
+inducing variables.
 """
 function create_blockmatrix(A,d,M)
     return [view(A,i:i+M-1,j:j+M-1) for i=1:M:M*d, j=1:M:M*d]

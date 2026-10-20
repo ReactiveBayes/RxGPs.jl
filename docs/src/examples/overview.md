@@ -1,47 +1,52 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Examples](@id examples-overview)
 
-RxGP ships with Jupyter notebook examples in the `examples/` directory of the repository. These demonstrate end-to-end workflows for common GP modelling scenarios.
+The repository's [`examples/`](https://github.com/ReactiveBayes/RxGPs.jl/tree/main/examples)
+directory has three Jupyter notebooks, each an end-to-end workflow. The
+[usage examples](@ref examples-usage) on this site run as the documentation builds.
 
-## GP Regression
+## GP regression
 
-**Notebook:** `examples/GPRegression.ipynb`
+[`examples/GPRegression.ipynb`](https://github.com/ReactiveBayes/RxGPs.jl/blob/main/examples/GPRegression.ipynb):
+sparse GP regression of scalar observations.
 
-Standard sparse GP regression with scalar observations. Demonstrates:
-- Setting up inducing points and a squared-exponential kernel
-- Defining the model with [`UniSGP`](@ref) nodes
-- Running variational inference with RxInfer
-- Posterior prediction with [`predict_GP`](@ref)
+- Inducing inputs and a squared-exponential kernel.
+- A model of [`UniSGP`](@ref) nodes, inferred by variational message passing with RxInfer.
+- The kernel hyperparameters learned by alternating inference with gradient steps.
+- Prediction with [`predict_GP`](@ref).
 
-## GP State-Space Model
+## GP state-space model
 
-**Notebook:** `examples/GPSSM.ipynb`
+[`examples/GPSSM.ipynb`](https://github.com/ReactiveBayes/RxGPs.jl/blob/main/examples/GPSSM.ipynb):
+a state-space model whose transition is a GP, learned from noisy observations of a pendulum.
 
-A Gaussian process state-space model where the GP governs the transition dynamics. Demonstrates:
-- Composing GP factor nodes with standard state-space model components
-- Streaming (online) inference over time steps
-- Uncertain inputs flowing through the GP node
+- [`MultiSGP`](@ref) nodes for the vector-valued transition, with a [`MultiSGPMeta`](@ref) and
+  spherical-radial cubature over the uncertain previous state.
+- Smoothing by variational message passing over the whole sequence, and the kernel
+  hyperparameters learned with [`grad_llh_multi!`](@ref).
+- A comparison with a known transition through RxInfer's unscented transform, and one-step
+  predictions with [`MultiSGP`](@ref)'s rule towards `out`.
 
-## GP Regression with Gradient Observations (AMF)
+## GP regression with gradient observations and an arbitrary mean function
 
-**Notebook:** `examples/GP_Regression_AMF_Grads.ipynb`
+[`examples/GP_Regression_AMF_Grads.ipynb`](https://github.com/ReactiveBayes/RxGPs.jl/blob/main/examples/GP_Regression_AMF_Grads.ipynb):
+regression from function values and gradients, with an arbitrary mean function (AMF).
 
-GP regression that incorporates **derivative observations** alongside function-value observations. Demonstrates:
-- Using the [`UniSGP_dID`](@ref) node with `:grad` and `:joint_fn_grad` operators
-- Automatic Mean Field (AMF) variational inference
-- Hyperparameter optimisation via gradient-based methods
+- [`UniSGP`](@ref) nodes for the values and [`UniSGP_dID`](@ref) nodes with the `:grad` operator
+  for the gradients, sharing the inducing variables.
+- Optionally noisy inputs, inferred by message passing.
+- The kernel hyperparameters learned by gradient steps, and the predictive error compared.
 
 !!! tip
-    To run the notebooks, clone the repository and open them with Jupyter or VS Code.
-    The notebooks have their own dedicated environment in `examples/`. Set it up once from the
-    repository root:
+    The notebooks have an environment of their own. Clone the repository and set it up once from
+    its root:
     ```julia
     using Pkg
     Pkg.activate("examples")
-    Pkg.develop(PackageSpec(path="."))   # link local RxGP
+    Pkg.develop(path = ".")    # on Julia 1.11 and later, Pkg.instantiate() alone also links it
     Pkg.instantiate()
     ```
-    On subsequent sessions, only `Pkg.activate("examples")` is needed before opening a notebook.
+    Then open a notebook with Jupyter or VS Code; it activates the environment itself.

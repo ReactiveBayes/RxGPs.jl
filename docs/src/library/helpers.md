@@ -1,10 +1,10 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Helper utilities](@id helpers-reference)
 
-RxGP exports several utility functions used throughout the message passing rules and by end users.
+RxGPs exports several utility functions used throughout the message passing rules and by end users.
 
 ## Mean function application
 
@@ -35,23 +35,17 @@ jdotavx
 create_blockmatrix
 ```
 
-## Inducing variable buffer
-
-```@docs
-BufferUniSGP
-```
-
-`BufferUniSGP` wraps an inducing-variable message together with its meta object. When the product of all incoming messages to `v` has been accumulated (tracked via `meta.counter`), it updates the Cholesky factor of the second moment `meta.Uv`. This ensures that the free-energy computation remains efficient.
-
 ## Hyperparameter optimisation
 
-The following functions compute the negative log backward message and its gradient with respect to the kernel hyperparameters ``\theta``. They are designed to be used with gradient-based optimisers (e.g. [Optim.jl](https://github.com/JuliaNLSolvers/Optim.jl) or [Flux.jl](https://github.com/FluxML/Flux.jl)).
+The kernel hyperparameters ``\theta`` are learned outside message passing, by an M-step that alternates with inference: the functions below compute the negative log of the backward messages towards ``\theta``, summed over the data, and its gradient, for a gradient-based optimiser such as [Flux.jl](https://github.com/FluxML/Flux.jl)'s, as in the [usage examples](@ref examples-usage), or [Optim.jl](https://github.com/JuliaNLSolvers/Optim.jl).
 
 ```@docs
 neg_log_backwardmess_fast
 neg_log_backwardmess_uncertain
 neg_log_backwardmess_msg
 grad_llh_default!
+grad_llh_msg!
 neg_log_backwardmess_multi
+grad_llh_multi
 grad_llh_multi!
 ```

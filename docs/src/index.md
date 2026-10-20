@@ -1,41 +1,57 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
-# RxGP.jl
+# RxGPs.jl
 
-*Julia package for sparse Gaussian process inference via reactive message passing on factor graphs.*
+*Sparse Gaussian process factor nodes for variational message passing on factor graphs.*
 
-RxGP provides custom factor nodes and message passing update rules for Sparse Variational Gaussian Process (SVGP) models within the [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl) ecosystem. It enables efficient, scalable GP regression and GP state-space modelling by embedding sparse GP computations directly into a factor graph, where inference is performed automatically through message passing.
+RxGPs brings variational sparse Gaussian processes (VSGPs) to [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl).
+A GP enters a model as one factor node per observation, connected to shared inducing variables, a
+noise precision and the kernel hyperparameters, and inference is message passing on the factor
+graph, alongside whatever else the model contains.
 
-## Why RxGP?
+## Why RxGPs?
 
-Gaussian processes are powerful non-parametric models, but standard GP inference scales cubically in the number of observations. Sparse variational approximations reduce this cost by introducing a small set of **inducing points**, but integrating sparse GPs into larger probabilistic models (e.g. state-space models) typically requires custom, hand-derived inference algorithms.
+Gaussian processes are flexible non-parametric models, but exact inference costs ``O(N^3)`` in the
+number of observations. Sparse variational approximations reduce this with a small set of
+**inducing points**, yet putting a sparse GP inside a larger probabilistic model, a state-space
+model say, usually takes an inference algorithm derived by hand.
 
-RxGP solves this by packaging the sparse GP computation into dedicated **factor nodes** — [`UniSGP`](@ref), [`UniSGP_dID`](@ref), and [`MultiSGP`](@ref) — that plug directly into the [ReactiveMP.jl](https://github.com/ReactiveBayes/ReactiveMP.jl) message passing engine. This means you can:
+RxGPs packages the sparse GP into factor nodes, [`UniSGP`](@ref), [`UniSGP_dID`](@ref) and
+[`MultiSGP`](@ref), whose message passing rules are declared with
+[MessagePassingRulesBase.jl](https://github.com/ReactiveBayes/MessagePassingRulesBase.jl) and run
+by RxInfer's engine. So you can:
 
-- **Compose** GP components with arbitrary probabilistic model elements (state-space dynamics, switching models, etc.) using standard [GraphPPL.jl](https://github.com/ReactiveBayes/GraphPPL.jl) syntax.
-- **Infer** all latent variables (function values, inducing variables, noise precisions, hyperparameters, and uncertain inputs) jointly via variational message passing — no manual derivations required.
-- **Observe** function values, gradients, or both simultaneously with the `:fn`, `:grad`, and `:joint_fn_grad` operator modes.
+- **compose** GP components with any other model element, in [GraphPPL.jl](https://github.com/ReactiveBayes/GraphPPL.jl)'s
+  model syntax;
+- **infer** the inducing variables, the noise precisions and uncertain inputs jointly by
+  variational message passing, with no derivation by hand;
+- **observe** function values, gradients, or both, through `UniSGP_dID`'s linear operators.
 
-## Package Features
+## Features
 
-- **Three sparse GP factor nodes** with full message passing rules on every edge:
-  - [`UniSGP`](@ref) — Univariate (scalar output) sparse GP observations.
-  - [`UniSGP_dID`](@ref) — Univariate sparse GP with derivative/gradient observations.
-  - [`MultiSGP`](@ref) — Multivariate (vector output) sparse GP observations.
-- **Flexible kernel specification** via [`get_simple_kernel_and_params`](@ref), supporting squared-exponential (`:SE`), multi-SE (`:SEn`), spectral-mixture (`:SMn`), and combined (`:SEn_SMn`) kernels.
-- **Automatic and analytic differentiation** of kernels for gradient observation models (`:AD` and `:AN` modes).
-- **Generalized Unscented Transform** ([`GenUnscented`](@ref)) for approximate kernel expectations under uncertain inputs.
-- **Posterior prediction** via [`predict_GP`](@ref) for test-time inference with trained models.
-- **High-performance caching** ([`GPCache`](@ref)) with in-place matrix operations to minimise allocations during inference.
-- **Hyperparameter optimisation** utilities ([`neg_log_backwardmess_fast`](@ref), [`grad_llh_default!`](@ref)) for gradient-based tuning of kernel parameters.
+- **Three sparse GP factor nodes**, with message passing rules towards every edge:
+  - [`UniSGP`](@ref): a scalar function of a D-dimensional input;
+  - [`UniSGP_dID`](@ref): a linear operator of the function, such as its gradient, or the
+    function and its gradient together;
+  - [`MultiSGP`](@ref): a vector-valued function.
+- **Kernels** from [`get_simple_kernel_and_params`](@ref): squared exponential (`:SE`), mixtures of
+  them (`:SEn`), spectral mixtures (`:SMn`) and their sums (`:SEn_SMn`).
+- **Kernel derivatives** for the gradient operators, by automatic differentiation (`:AD`) or in
+  closed form for the squared exponential (`:AN`).
+- **Uncertain inputs**: kernel expectations by Gauss–Hermite cubature (the default), the
+  spherical-radial cubature [`srcubature`](@ref) or the generalised unscented transform
+  [`GenUnscented`](@ref).
+- **Prediction** at new inputs with [`predict_GP`](@ref).
+- **Hyperparameter learning**: the M-step objectives and their gradients,
+  [`neg_log_backwardmess_fast`](@ref) and [`grad_llh_default!`](@ref).
 
 ## How to get started?
 
-Head to the [Getting started](@ref getting-started) section.
+Head to [Getting started](@ref getting-started), then the [usage examples](@ref examples-usage).
 
-## Table of Contents
+## Contents
 
 ```@contents
 Pages = [
@@ -49,9 +65,23 @@ Pages = [
     "library/helpers.md",
     "library/types.md",
     "examples/overview.md",
+    "examples/usage.md",
     "contributing/guide.md",
 ]
 Depth = 2
+```
+
+## Citing
+
+If you use RxGPs, please cite H. M. H. Nguyen, İ. Şenöz and B. de Vries, "A Factor Graph Approach
+to Variational Sparse Gaussian Processes", *IEEE Open Journal of Signal Processing* 6, 815–837
+(2025), [doi:10.1109/OJSP.2025.3585440](https://doi.org/10.1109/OJSP.2025.3585440). The repository's
+`CITATION.cff` has the BibTeX details.
+
+## The package
+
+```@docs
+RxGPs
 ```
 
 ## Index

@@ -1,89 +1,106 @@
 ```@meta
-CurrentModule = RxGP
+CurrentModule = RxGPs
 ```
 
 # [Getting started](@id getting-started)
 
-This guide walks you through installing RxGP, building a simple sparse GP regression model, and running inference.
+This page installs RxGPs, builds a sparse GP regression model and runs inference on it.
 
 ## Installation
 
+RxGPs needs Julia 1.10 or later and [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl) 6.
+It is not yet registered; install it from GitHub, with RxInfer and
+[KernelFunctions.jl](https://github.com/JuliaGaussianProcesses/KernelFunctions.jl), which the
+kernels come from:
+
 ```julia
 using Pkg
-Pkg.add("RxGP")
+Pkg.add(url = "https://github.com/ReactiveBayes/RxGPs.jl")
+Pkg.add(["RxInfer", "KernelFunctions"])
 ```
 
-RxGP depends on [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl), [ReactiveMP.jl](https://github.com/ReactiveBayes/ReactiveMP.jl), and [KernelFunctions.jl](https://github.com/JuliaGaussianProcesses/KernelFunctions.jl), which will be installed automatically.
+## The approach
 
-## Overview of the approach
+RxGPs implements variational sparse Gaussian processes (VSGPs) as factor nodes:
 
-RxGP implements **Sparse Variational Gaussian Process** (SVGP) inference as factor nodes in a factor graph. The key idea is:
+1. A small set of **inducing inputs** ``\mathbf{X}_u = \{x_{u,1}, \ldots, x_{u,M}\}`` summarises the GP.
+2. The nodes work with the **transformed inducing variables** ``\mathbf{v} = K_{uu}^{-1}\mathbf{u}``,
+   where ``\mathbf{u} = f(\mathbf{X}_u)`` and ``K_{uu} = k(\mathbf{X}_u, \mathbf{X}_u)``.
+3. Each observation ``y_n`` gets a [`UniSGP`](@ref) node, which connects it to its input ``x_n``,
+   the shared ``\mathbf{v}``, the noise precision ``w`` and the kernel hyperparameters ``\theta``.
+4. Variational message passing infers the posteriors of ``\mathbf{v}``, ``w`` and any uncertain
+   input; ``\theta`` is learned by an M-step, outside message passing.
 
-1. Place a small set of **inducing points** ``\mathbf{X}_u = \{x_{u,1}, \ldots, x_{u,M}\}`` in the input space.
-2. Define a **transformed inducing variable** ``\mathbf{v} = K_{uu}^{-1}\mathbf{u}``, where ``\mathbf{u} = f(\mathbf{X}_u)`` and ``K_{uu} = k(\mathbf{X}_u, \mathbf{X}_u)``.
-3. For each observation ``y_n``, create a [`UniSGP`](@ref) node that connects the output ``y_n``, the input ``x_n``, the shared inducing variable ``\mathbf{v}``, the noise precision ``w``, and the kernel hyperparameters ``\theta``.
-4. Run variational message passing to infer posterior beliefs over all latent variables.
+The node's meta, here built by [`get_UniSGPMeta`](@ref), is its algorithm: it carries the kernel,
+the inducing inputs and how to integrate over an uncertain input.
 
-## Quick example: GP regression
+## A first regression
 
-```julia
-using RxInfer, RxGP, KernelFunctions, Plots, Random
+Noisy observations of ``\sin(x)`` on ``[0, 10]``, with fixed kernel hyperparameters:
 
-# --- Generate data ---
-Random.seed!(42)
-N = 50
-x_train = [rand(1) * 10 for _ in 1:N]           # 1D inputs
-f_true(x) = sin(x[1])
-y_train = [f_true(x) + 0.1 * randn() for x in x_train]
+```@example getting-started
+using RxInfer, RxGPs, KernelFunctions, StableRNGs, Plots
 
-# --- Set up the GP ---
-D = 1                                              # input dimension
-M = 15                                             # number of inducing points
-Xu = [collect(range(0, 10, length=M)[i:i]) for i in 1:M]  # inducing locations
+rng = StableRNG(42)
+N, M = 50, 15
+x_train = sort(10 .* rand(rng, N))
+y_train = sin.(x_train) .+ 0.1 .* randn(rng, N)
+Xu = collect(range(0, 10; length = M))             # inducing inputs
 
-# Kernel: squared-exponential with initial hyperparameters
-kernel_fn, θ_init, dim_θ = get_simple_kernel_and_params(D; kernel_spec=:SE)
-θ_fixed = θ_init
+kernel, θ, _ = get_simple_kernel_and_params(1; kernel_spec = :SE)
+meta = get_UniSGPMeta(1; mean_fn = (x) -> 0.0, kernel = kernel, Xu = Xu, θ = θ)
 
-# Build meta object
-meta = get_UniSGPMeta(D;
-    method    = GenUnscented(),
-    mean_fn   = (x) -> 0.0,
-    kernel    = kernel_fn,
-    kernel_spec = :SE,
-    operator  = :fn,
-    Xu        = Xu,
-    θ         = θ_fixed,
-)
-
-# --- Define the model ---
-@model function gp_regression(y, x, meta)
-    θ  ~ PointMass(θ_fixed)
-    w  ~ GammaShapeRate(1.0, 1.0)
-    v  ~ MvNormalMeanCovariance(zeros(M), diagm(ones(M)))
+@model function gp_regression(y, x, θ)
+    v ~ MvNormalMeanCovariance(zeros(M), 100 * diageye(M))
+    w ~ GammaShapeRate(1.0, 1.0)
     for n in eachindex(y)
-        y[n] ~ UniSGP(x[n], v, w, θ) where { meta = meta }
+        y[n] ~ UniSGP(x[n], v, w, θ)
     end
 end
 
-# --- Run inference ---
 result = infer(
-    model = gp_regression(meta = meta),
-    data  = (y = y_train, x = x_train),
+    model = gp_regression(θ = θ),
+    data = (y = y_train, x = x_train),
+    algorithm = @algorithm(begin UniSGP() -> meta end),
+    constraints = @constraints(begin q(v, w) = q(v)q(w) end),
+    initialization = @initialization(begin q(w) = GammaShapeRate(1.0, 1.0) end),
     iterations = 10,
+    free_energy = true,
 )
-
-# --- Predict ---
-x_test = [[xi] for xi in range(0, 10, length=100)]
-q_v = result.posteriors[:v][end]
-means, covs = predict_GP(m_in=x_test, q_v=q_v, q_θ=PointMass(θ_fixed), meta=meta)
+result.free_energy
 ```
 
+The free energy decreases at every iteration. The rules of a `UniSGP` node take marginals, so
+the model needs a factorisation of `v` and `w`, and an initial marginal for `w`.
+
+## Prediction
+
+[`predict_GP`](@ref) gives the posterior predictive mean and covariance at new inputs:
+
+```@example getting-started
+q_v = result.posteriors[:v][end]
+x_test = collect(range(0, 10; length = 200))
+means, covs = predict_GP(m_in = [[x] for x in x_test], q_v = q_v, q_θ = θ, meta = meta)
+μ = [m[1] for m in means]
+σ = [sqrt(C[1, 1]) for C in covs]
+
+plot(x_test, μ; ribbon = 2σ, label = "posterior mean ± 2σ", xlabel = "x", ylabel = "y")
+scatter!(x_train, y_train; label = "observations", markersize = 3)
+plot!(x_test, sin.(x_test); label = "sin(x)", linestyle = :dash)
+savefig("getting-started-prediction.svg"); nothing # hide
+```
+
+![Prediction](getting-started-prediction.svg)
+
 !!! note
-    The example above uses fixed kernel hyperparameters. For hyperparameter optimisation, see the gradient-based utilities [`neg_log_backwardmess_fast`](@ref) and [`grad_llh_default!`](@ref), which can be combined with [Optim.jl](https://github.com/JuliaNLSolvers/Optim.jl).
+    The hyperparameters here are fixed at their initial values. To learn them, alternate
+    inference with gradient steps from [`grad_llh_default!`](@ref), building the meta again at
+    each new `θ`; the [usage examples](@ref examples-usage) do this.
 
 ## What's next?
 
-- Learn about the three GP factor nodes: [`UniSGP`](@ref nodes-reference), [`UniSGP_dID`](@ref nodes-reference), and [`MultiSGP`](@ref nodes-reference).
-- See how to configure kernel functions and meta objects in [Kernel specification](@ref kernels-reference) and [Meta objects](@ref meta-reference).
-- Explore the [Examples](@ref examples-overview) for GP regression, GP state-space models, and gradient observations.
+- The three nodes: [`UniSGP`](@ref nodes-unisgp), [`UniSGP_dID`](@ref nodes-unisgp-did) and
+  [`MultiSGP`](@ref nodes-multisgp).
+- [Kernel specification](@ref kernels-reference) and [Meta objects](@ref meta-reference).
+- The [usage examples](@ref examples-usage), with hyperparameter learning and gradient
+  observations, and the [notebooks](@ref examples-overview).

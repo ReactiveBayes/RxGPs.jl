@@ -1,7 +1,6 @@
 ﻿@testsnippet test_snippet begin
-    using RxGP
+    using RxGPs
     using RxInfer
-    using ReactiveMP
     using Random
     using Distributions
     using StableRNGs
@@ -10,7 +9,7 @@
     using StatsFuns
     using Test
 
-    const grad_default_method = ReactiveMP.ghcubature(21)
+    const grad_default_method = ghcubature(21)
 
     function test_fixture(; D=1, fixed_input=false, fixed_output=false, kernel_spec=:SE, mode=:AN, independent_SE_lengthscales=true)
         rng = StableRNG(12)
@@ -36,11 +35,13 @@
 end
 
 @testitem "helper_functions/other_functions/TestOtherFunction" setup=[test_snippet] begin
-    using RxGP, Random, LinearAlgebra, Test
-    A = rand(4,4)
+    using StableRNGs
+    rng = StableRNG(300)
+    using RxGPs, Random, LinearAlgebra, Test
+    A = rand(rng, 4,4)
     blk_A = [A[1:2,1:2], A[3:4,1:2], A[1:2,3:4],A[3:4,3:4]]
-    a = rand(4)
-    b = rand(4)
+    a = rand(rng, 4)
+    b = rand(rng, 4)
 
     @test jdotavx(a,b) ≈ dot(a,b)
     blk_matrix = create_blockmatrix(A,2,2)
@@ -164,30 +165,15 @@ end
     Kuu = kernelmatrix(kernel(θ), Xu) + 1e-8 * I
     KuuF = cholesky(Kuu)
     x_dummy = zeros(D)
-    Ψx = 0.0
-    Ψxx = 0.0
-    Ψ0 = kernelmatrix(kernel(θ), [x_dummy])[1]
-    Ψ1_trans = kernelmatrix(kernel(θ), Xu, [x_dummy])
-    Ψ2 = kernelmatrix(kernel(θ), Xu, [x_dummy]) * kernelmatrix(kernel(θ), [x_dummy], Xu);
-    Ψ3 = kernelmatrix(kernel(θ), [x_dummy], Xu)
-    Uv = zeros(size(Xu,1), size(Xu,1))
 
     Kxx_val = get_gradient_Kxx_fn(D; kernel=kernel, kernel_spec=kernel_spec, mode=mode, independent_SE_lengthscales=independent_SE_lengthscales)(x_dummy, θ)
     Kxu_val = get_gradient_Kxu_fn(D; kernel=kernel, kernel_spec=kernel_spec, mode=mode, independent_SE_lengthscales=independent_SE_lengthscales)(x_dummy, θ, Xu)
 
     dims_theta = length(θ)
-    counter = 0
-    N = 1
 
     @test getmethod(meta) == method
     @test getMeanFn(meta) == mean_fn
     @test getInducingInput(meta) == Xu
-    @test getΨx(meta) == Ψx
-    @test getΨxx(meta) == Ψxx
-    @test getΨ0(meta) == Ψ0
-    @test getΨ1_trans(meta) == Ψ1_trans
-    @test getΨ2(meta) == Ψ2
-    @test getΨ3(meta) == Ψ3
     @test length(getLm_fn(meta)(x_dummy)) == D
     @test getKxx_fn(meta)(x_dummy, θ) == Kxx_val
     @test getKxu_fn(meta)(x_dummy, θ, Xu) == Kxu_val
@@ -196,13 +182,12 @@ end
     @test get_dims_input(meta) == D
     @test get_dims_output(meta) == D # because grad operator
     @test get_dims_theta(meta) == dims_theta
-    @test getUv(meta) == Uv
-    @test getcounter(meta) == counter
-    @test getN(meta) == N
 
 end
 
 @testitem "node_rule/univariate_dID/Test gradient mean function (Lm_fn)" setup=[test_snippet] begin
+    using StableRNGs
+    rng = StableRNG(305)
     function num_grad(x_dummy, mean_fn, D)
         ϵ = 1e-6
         numerical_grad = zeros(D)
@@ -232,7 +217,7 @@ end
     D = 3
     mean_fn = (x) -> sum(x .^ 2)
     kernel, θ_val, _ = get_simple_kernel_and_params(D; kernel_spec=:SE)
-    Xu = [randn(D) for _ in 1:5]
+    Xu = [randn(rng, D) for _ in 1:5]
     meta = get_UniSGPMeta(D; method=grad_default_method, mean_fn=mean_fn, kernel=kernel, kernel_spec=:SE, mode=:AN, operator=:grad, Xu=Xu, θ=θ_val)
     Lm_fn = getLm_fn(meta)
     x_dummy = [1.0, -2.0, 0.5]
