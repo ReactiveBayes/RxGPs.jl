@@ -24,6 +24,26 @@ end
     @test approximate_kernel_expectation(GenUnscented(), x -> [x^3], q)[1] ≈ mean(q)^3 + 3 * mean(q) * var(q)
 end
 
+@testitem "helper_functions/approximations/GenUnscented matches the central moments" begin
+    using RxGP, RxInfer, LinearAlgebra
+    import RxGP: approximate_kernel_expectation
+    # univariate: mean, variance and the fourth central moment 3σ⁴, for σ² ≠ 1
+    q = NormalMeanVariance(0.4, 0.3)
+    E = f -> approximate_kernel_expectation(GenUnscented(), x -> [f(x)], q)[1]
+    @test E(x -> x) ≈ 0.4
+    @test E(x -> (x - 0.4)^2) ≈ 0.3
+    @test E(x -> (x - 0.4)^4) ≈ 3 * 0.3^2
+    # multivariate normal: mean, covariance and each component's fourth central moment
+    m = [0.4, -1.1]
+    for V in ([0.5 0.0; 0.0 2.0], [1.0 0.3; 0.3 0.8])
+        q = MvNormalMeanCovariance(m, V)
+        E = f -> approximate_kernel_expectation(GenUnscented(), f, q)
+        @test E(x -> x) ≈ m
+        @test E(x -> (x - m) * transpose(x - m)) ≈ V
+        @test E(x -> (x - m) .^ 4) ≈ 3 .* diag(V) .^ 2
+    end
+end
+
 @testitem "helper_functions/approximations/θ rules with nearly co-located inducing points (#35)" begin
     using RxGP, RxInfer, MessagePassingRulesBase
     kernel, θ, _ = get_simple_kernel_and_params(1; kernel_spec = :SE)
