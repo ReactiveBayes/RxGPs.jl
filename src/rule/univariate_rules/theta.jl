@@ -14,7 +14,7 @@
         w_bar = mean(q_w)
         kernel = getKernel(meta)
         Xu = getInducingInput(meta)
-        KuuF = (θ) -> fastcholesky(kernelmatrix(kernel(θ),Xu))
+        KuuF = (θ) -> fastcholesky(kernelmatrix(kernel(θ),Xu) + KUU_JITTER * I)
         mf = getMeanFn(meta)
         mxu = apply_mean_fn.(meta.Xu, mf)
         Ku_mxu = (θ) -> KuuF(θ) \ mxu

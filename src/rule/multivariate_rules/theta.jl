@@ -17,7 +17,7 @@
         Xu = getInducingInput(meta)
         C = diageye(length(μ_y))
 
-        Kuu_inverse = (θ) -> cholinv(kernelmatrix(kernel(θ),Xu))
+        Kuu_inverse = (θ) -> cholinv(kernelmatrix(kernel(θ),Xu) + KUU_JITTER * I)
         Ψ_0 = (θ) -> approximate_kernel_expectation(getmethod(meta),(x) -> kernelmatrix(kernel(θ), [x], [x]),q_in)[1]
         Ψ_1 = (θ) -> approximate_kernel_expectation(getmethod(meta),(x) -> kernelmatrix(kernel(θ), [x], Xu),q_in)
         Ψ_2 = (θ) -> approximate_kernel_expectation(getmethod(meta),(x) -> kernelmatrix(kernel(θ), Xu, [x]) * kernelmatrix(kernel(θ), [x], Xu), q_in) + 1e-7*I 

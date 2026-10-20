@@ -32,7 +32,7 @@ Supports function-value observations (`y_data`/`x_y_data`), gradient observation
 Used as the M-step objective in [`grad_llh_default!`](@ref).
 """
 function neg_log_backwardmess_fast(θ; ω_data::Union{Nothing,AbstractVector{<:AbstractVector}}=nothing, y_data::Union{Nothing,AbstractVector}=nothing, x_y_data::Union{AbstractVector{<:Union{Distribution, PointMass, AbstractVector}}, Nothing}, x_ω_data::Union{AbstractVector{<:Union{Distribution, PointMass, AbstractVector}}, Nothing}, q_v, q_w=nothing, q_Wg=nothing, method=nothing, kernel, Lm_fn=nothing, Kxx_fn=nothing, Kxu_fn=nothing, mean_fn, Xu)
-    Kuu = kernelmatrix(kernel(θ), Xu) + 1e-8 * I
+    Kuu = kernelmatrix(kernel(θ), Xu) + KUU_JITTER * I
     KuuF = fastcholesky(Kuu)
     mf = mean_fn
     mxu = apply_mean_fn.(Xu, mf)
@@ -125,7 +125,7 @@ Negative log backward message toward `θ` when inputs `qx` are distributions.
 Uses Gauss–Hermite cubature to compute kernel expectations `Ψ0`, `Ψ1`, `Ψ2`.
 """
 function neg_log_backwardmess_uncertain(θ; y_data, qx,v, Uv,w,kernel,Xu,method)
-    Kuu_inverse = inv(kernelmatrix(kernel(θ), Xu) + 1e-12*I) 
+    Kuu_inverse = inv(kernelmatrix(kernel(θ), Xu) + KUU_JITTER * I)
     llh = 0.0
     @inbounds for i in eachindex(y_data)
         Ψ0 = approximate_kernel_expectation(method,(x) -> kernelmatrix(kernel(θ), [x], [x]),qx[i])[1]
@@ -177,7 +177,7 @@ Negative log backward message toward `θ` for the multivariate ([`MultiSGP`](@re
 Expects pre-computed `sumRv_Wbar = sum(Rv_blk .* W)` and `tr_W = tr(W)` for efficiency.
 """
 function neg_log_backwardmess_multi(θ;y_data, qx, sumRv_Wbar, v, W ,tr_W, kernel, Xu,method)
-        Kuu_inverse = inv(kernelmatrix(kernel(θ), Xu) + 1e-12*I)        
+        Kuu_inverse = inv(kernelmatrix(kernel(θ), Xu) + KUU_JITTER * I)
         llh = 0.0
         M = size(Xu,1)
         @inbounds for i in eachindex(qx)

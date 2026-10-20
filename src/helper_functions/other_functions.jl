@@ -95,7 +95,7 @@ function get_UniSGPMeta(D; method=ghcubature(21), mean_fn, kernel, kernel_spec::
     θ = typeof(θ) <: PointMass ? mean(θ) : θ
     dims_theta = length(θ)
     dims_input = D
-    Kuu = kernelmatrix(kernel(θ), Xu) + 1e-8 * I
+    Kuu = kernelmatrix(kernel(θ), Xu) + KUU_JITTER * I
     KuuF = cholesky(Kuu)
     x_dummy = zeros(D)
 
