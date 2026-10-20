@@ -116,6 +116,9 @@ end
 
 
 # # ======= Kernel and Mean-Function Diff Functions - GENERAL ======= #
+as_vector(x::Number) = [x]
+as_vector(x::AbstractVector) = x
+
 """
     get_gradient_Kxu_fn(D; kernel, kernel_spec=:SE, mode=:AD, independent_SE_lengthscales=true)
 
@@ -126,6 +129,9 @@ function get_gradient_Kxu_fn(D; kernel::Any=kernel, kernel_spec::Symbol=:SE, mod
     if mode == :AD
         # AutoDiff approach
         return (x, θ, Xu) -> begin
+            # ForwardDiff differentiates vectors: a scalar input, and scalar inducing points, become 1-vectors
+            x = as_vector(x)
+            Xu = map(as_vector, Xu)
             D = length(x)
             N = length(Xu)
             f = (x1, x2) -> kernelmatrix(kernel(θ), [x1], [x2])[1]
@@ -204,6 +210,7 @@ function get_gradient_Kxx_fn(D; kernel::Any=kernel, kernel_spec::Symbol=:SE, mod
     if mode == :AD
         # AutoDiff approach
         return (x, θ) -> begin
+            x = as_vector(x)
             f = (x1, x2) -> kernelmatrix(kernel(θ), [x1], [x2])[1]
             g = (x1, x2) -> ForwardDiff.gradient(z -> f(z, x2), x1)
             res = ForwardDiff.jacobian(z -> g(x, z), x)
