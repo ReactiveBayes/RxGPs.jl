@@ -20,7 +20,7 @@
         Kuu_inverse = (θ) -> cholinv(kernelmatrix(kernel(θ),Xu) + KUU_JITTER * I)
         Ψ_0 = (θ) -> approximate_kernel_expectation(getmethod(meta),(x) -> kernelmatrix(kernel(θ), [x], [x]),q_in)[1]
         Ψ_1 = (θ) -> approximate_kernel_expectation(getmethod(meta),(x) -> kernelmatrix(kernel(θ), [x], Xu),q_in)
-        Ψ_2 = (θ) -> approximate_kernel_expectation(getmethod(meta),(x) -> kernelmatrix(kernel(θ), Xu, [x]) * kernelmatrix(kernel(θ), [x], Xu), q_in) + 1e-7*I 
+        Ψ_2 = (θ) -> approximate_kernel_expectation(getmethod(meta),(x) -> kernelmatrix(kernel(θ), Xu, [x]) * kernelmatrix(kernel(θ), [x], Xu), q_in)
 
         I1 = (θ) -> kron(C, Ψ_0(θ) - tr(Kuu_inverse(θ) * Ψ_2(θ)))
         Ψ_1_tilde = (θ) -> kron(C, Ψ_1(θ))
