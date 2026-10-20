@@ -1,10 +1,11 @@
+import BayesBase
 using ExponentialFamilyProjection
 
 # This file is intended to be included standalone when working with non-conjugate products in RxInfer.jl.
 # We include it here to showcase our examples that need to combine non-conjugate messages from the univariate
 # and univariate_dID nodes with Guassian priors.
 
-function ReactiveMP.prod(::GenericProd, left::NormalDistributionsFamily, right::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf})
+function BayesBase.prod(::GenericProd, left::NormalDistributionsFamily, right::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf})
     dims = length(left)
     function total_logpdf(x) return dims == 1 ? logpdf(left, only(x)) + logpdf(right, only(x)) : logpdf(left, x) + logpdf(right, x) end
     function my_logpdf!(out, x)
@@ -25,7 +26,7 @@ function ReactiveMP.prod(::GenericProd, left::NormalDistributionsFamily, right::
     return dims == 1 ? NormalMeanVariance(only(mean(projected_Gauss)), only(cov(projected_Gauss))) : projected_Gauss
 end
 
-function ReactiveMP.prod(::GenericProd, left::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}, right::NormalDistributionsFamily)
+function BayesBase.prod(::GenericProd, left::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}, right::NormalDistributionsFamily)
     dims = length(right)
     function total_logpdf(x) return dims == 1 ? logpdf(left, only(x)) + logpdf(right, only(x)) : logpdf(left, x) + logpdf(right, x) end
     function my_logpdf!(out, x)
@@ -46,11 +47,11 @@ function ReactiveMP.prod(::GenericProd, left::Union{ContinuousUnivariateLogPdf, 
     return dims == 1 ? NormalMeanVariance(only(mean(projected_Gauss)), only(cov(projected_Gauss))) : projected_Gauss
 end
 
-function ReactiveMP.prod(::GenericProd, left::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}, right::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}) 
+function BayesBase.prod(::GenericProd, left::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}, right::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}) 
     return ProductOf(left, right)
 end
 
-function ReactiveMP.prod(::GenericProd, left::NormalDistributionsFamily, prod_of::ProductOf)
+function BayesBase.prod(::GenericProd, left::NormalDistributionsFamily, prod_of::ProductOf)
     dims = length(left)
     function total_logpdf(x) return dims == 1 ? logpdf(left, only(x)) + logpdf(prod_of.left, only(x)) + logpdf(prod_of.right, only(x)) : logpdf(left, x) + logpdf(prod_of.left, x) + logpdf(prod_of.right, x) end
     function my_logpdf!(out, x)
@@ -71,7 +72,7 @@ function ReactiveMP.prod(::GenericProd, left::NormalDistributionsFamily, prod_of
     return dims == 1 ? NormalMeanVariance(only(mean(projected_Gauss)), only(cov(projected_Gauss))) : projected_Gauss
 end
 
-function ReactiveMP.prod(::GenericProd, prod_of::ProductOf, right::NormalDistributionsFamily) 
+function BayesBase.prod(::GenericProd, prod_of::ProductOf, right::NormalDistributionsFamily) 
     dims = length(right)
     function total_logpdf(x) return dims == 1 ? logpdf(prod_of.left, only(x)) + logpdf(prod_of.right, only(x)) + logpdf(right, only(x)) : logpdf(prod_of.left, x) + logpdf(prod_of.right, x) + logpdf(right, x) end
     function my_logpdf!(out, x)
@@ -92,8 +93,8 @@ function ReactiveMP.prod(::GenericProd, prod_of::ProductOf, right::NormalDistrib
     return dims == 1 ? NormalMeanVariance(only(mean(projected_Gauss)), only(cov(projected_Gauss))) : projected_Gauss
 end
 
-default_prod_rule(::NormalDistributionsFamily, ::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}) = GenericProd()
-default_prod_rule(::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}, ::NormalDistributionsFamily) = GenericProd()
-default_prod_rule(::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}, ::Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}) = GenericProd()
-default_prod_rule(::NormalDistributionsFamily, ::ProductOf) = GenericProd()
-default_prod_rule(::ProductOf, ::NormalDistributionsFamily) = GenericProd()
+BayesBase.default_prod_rule(::Type{<:NormalDistributionsFamily}, ::Type{<:Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}}) = GenericProd()
+BayesBase.default_prod_rule(::Type{<:Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}}, ::Type{<:NormalDistributionsFamily}) = GenericProd()
+BayesBase.default_prod_rule(::Type{<:Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}}, ::Type{<:Union{ContinuousUnivariateLogPdf, ContinuousMultivariateLogPdf}}) = GenericProd()
+BayesBase.default_prod_rule(::Type{<:NormalDistributionsFamily}, ::Type{<:ProductOf}) = GenericProd()
+BayesBase.default_prod_rule(::Type{<:ProductOf}, ::Type{<:NormalDistributionsFamily}) = GenericProd()
