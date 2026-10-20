@@ -1,6 +1,6 @@
 # Define gradient functions for hyperparameter optimization
 
-export neg_log_backwardmess_fast, neg_log_backwardmess_uncertain, grad_llh_default!, grad_llh_new!, grad_llh_uncertain!, grad_llh_msg!, neg_log_backwardmess_msg
+export neg_log_backwardmess_fast, neg_log_backwardmess_uncertain, grad_llh_default!, grad_llh_msg!, neg_log_backwardmess_msg
 export neg_log_backwardmess_multi, grad_llh_multi, grad_llh_multi!
 
 """
@@ -137,7 +137,7 @@ function neg_log_backwardmess_uncertain(θ; y_data, qx,v, Uv,w,kernel,Xu,method)
 end
 
 ## Define the corresponding derivative (gradient) functions 
-function grad_llh_msg!(grad, θ; in_data_, out_data_, q_v=q_v, q_W_, meta_, frozen_indices::Union{Nothing,AbstractVector{<:Integer}}=nothing)
+function grad_llh_msg!(grad, θ; in_data_, out_data_, q_v, q_W_, meta_, frozen_indices::Union{Nothing,AbstractVector{<:Integer}}=nothing)
     ForwardDiff.gradient!(grad, (x) -> neg_log_backwardmess_msg(x; in_data_=in_data_, out_data_=out_data_, q_v=q_v, q_W_=q_W_, meta_=meta_), θ)
     if !isnothing(frozen_indices)
         @inbounds for idx in frozen_indices
@@ -156,17 +156,6 @@ Accepts the same keyword arguments as `neg_log_backwardmess_fast`.
 """
 function grad_llh_default!(grad, θ; ω_data=nothing, y_data=nothing, x_y_data, x_ω_data, q_v, q_w=nothing, q_Wg=nothing, method=nothing, kernel, Lm_fn=nothing, Kxx_fn=nothing, Kxu_fn=nothing, mean_fn=nothing, Xu)
     return ForwardDiff.gradient!(grad, (x) -> neg_log_backwardmess_fast(x; ω_data=ω_data, y_data=y_data, x_y_data=x_y_data, x_ω_data=x_ω_data, q_v=q_v, q_w=q_w, q_Wg=q_Wg, method=method, kernel=kernel, Lm_fn=Lm_fn, Kxx_fn=Kxx_fn, Kxu_fn=Kxu_fn, mean_fn=mean_fn, Xu=Xu), θ)
-end
-
-#this is for big data
-function grad_llh_new!(grad, θ; y_data, x_data, qv, qw, kernel, Xu, chunk_size, mean_fn = (x) -> 0.0)
-    newfunc = (x) -> neg_log_backwardmess_fast(x; y_data=y_data, x_y_data=x_data, x_ω_data=nothing, q_v=qv, q_w=qw, kernel=kernel, mean_fn=mean_fn, Xu=Xu)
-    cfg = ForwardDiff.GradientConfig(newfunc, θ, ForwardDiff.Chunk{chunk_size}())
-    return ForwardDiff.gradient!(grad, newfunc, θ,cfg)
-end
-
-function grad_llh_uncertain!(grad,θ; y_data, qx,v, Uv,w,kernel,Xu,method)
-    return ForwardDiff.gradient!(grad, (x) -> neg_log_backwardmess_uncertain(x; y_data=y_data, qx=qx,v=v, Uv=Uv,w=w,kernel=kernel,Xu=Xu,method=method), θ)
 end
 
 # 2) multivariate case

@@ -62,7 +62,7 @@
         V = mul_A_B!(cache,μ_v,μ_y',M*D,D) |> (x) -> mul_A_B!(GPCache(),x, W,M*D,D)
         sumdiagV = sum_diagonal_M(V,M)
         sumRvblk_W = sum(create_blockmatrix(Σ_v,D,M) .* W)
-        log_backwardmess = (x) -> -0.5 * tr(W) * (Ψ0(x) - sum(Kuu_inverse .* Ψ2(x))) + sum(sumdiagV .* Ψ1_trans(x)) - 0.5 * sum(Ψ2(x) .* sumRvblk_W) #- D/2 * log(2π) + 0.5*logdetW - 0.5*μ_y'*W*μ_y
+        log_backwardmess = (x) -> -0.5 * tr(W) * (Ψ0(x) - sum(Kuu_inverse .* Ψ2(x))) + sum(sumdiagV .* Ψ1_trans(x)) - 0.5 * sum(Ψ2(x) .* sumRvblk_W)
         return ContinuousMultivariateLogPdf(UnspecifiedDomain(),log_backwardmess)
     end,
 )
@@ -100,9 +100,9 @@ function laplace_in_message(q_out::PointMass, q_in::MultivariateGaussianDistribu
 
     neg_log_backwardmess = (x) -> -(-0.5 * tr(W) * (Ψ0(x) - sum(Kuu_inverse .* Ψ2(x))) + sum(sumdiagV .* Ψ1_trans(x)) - 0.5 * sum(Ψ2(x) .* sumRvblk_W))
     grad_func! = (G,x) -> ForwardDiff.gradient!(G,neg_log_backwardmess,x)
-    res = optimize(neg_log_backwardmess,grad_func!, mean(q_in),LBFGS(),Optim.Options(iterations=20);inplace=true)#,Optim.Options(iterations=20))
+    res = optimize(neg_log_backwardmess,grad_func!, mean(q_in),LBFGS(),Optim.Options(iterations=20);inplace=true)
     m_z = res.minimizer
-    W_z = Zygote.hessian(neg_log_backwardmess, m_z) 
+    W_z = ForwardDiff.hessian(neg_log_backwardmess, m_z)
 
     return MvNormalWeightedMeanPrecision(W_z * m_z, W_z)
 end

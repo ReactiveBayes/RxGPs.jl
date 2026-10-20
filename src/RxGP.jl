@@ -5,8 +5,7 @@ using MessagePassingRulesBase: AbstractAlgorithm, diageye
 using ExponentialFamily: WishartFast
 using MessagePassingRulesApproximations: AbstractApproximationMethod, ghcubature
 using FastCholesky: fastcholesky, fastcholesky!, cholinv, cholsqrt
-using LoopVectorization, Zygote, Optim, ForwardDiff, StatsFuns, KernelFunctions, LinearAlgebra
-using Random, SparseArrays
+using LoopVectorization, Optim, ForwardDiff, StatsFuns, KernelFunctions, LinearAlgebra
 
 import MessagePassingRulesApproximations: getweights, getpoints
 

@@ -125,7 +125,7 @@ as_vector(x::AbstractVector) = x
 Return a function `(x, θ, Xu) -> Matrix` that computes the gradient of the cross-kernel
 ``\\nabla_x k(x, X_u)`` (a `D×M` matrix). Supports `:AD` (autodiff) and `:AN` (analytic, SE only) modes.
 """
-function get_gradient_Kxu_fn(D; kernel::Any=kernel, kernel_spec::Symbol=:SE, mode::Symbol=:AD, independent_SE_lengthscales::Bool=true)
+function get_gradient_Kxu_fn(D; kernel, kernel_spec::Symbol=:SE, mode::Symbol=:AD, independent_SE_lengthscales::Bool=true)
     if mode == :AD
         # AutoDiff approach
         return (x, θ, Xu) -> begin
@@ -193,7 +193,7 @@ function get_gradient_Kxu_fn(D; kernel::Any=kernel, kernel_spec::Symbol=:SE, mod
                 return res
             end
         else
-            error("Currently only SE and SE2 kernels supported for analytic gradient_Kxu_fn")
+            error("analytic (:AN) gradients support the :SE and :SEn kernels only; got kernel_spec = $kernel_spec")
         end
     else
         error("mode must be :AD (AutoDiff) or :AN (Analytic)")
@@ -206,7 +206,7 @@ end
 Return a function `(x, θ) -> Matrix` that computes the Hessian of the auto-kernel
 ``\\nabla_x \\nabla_{x'} k(x, x')`` (a `D×D` matrix). Supports `:AD` and `:AN` modes.
 """
-function get_gradient_Kxx_fn(D; kernel::Any=kernel, kernel_spec::Symbol=:SE, mode::Symbol=:AD, independent_SE_lengthscales::Bool=true)
+function get_gradient_Kxx_fn(D; kernel, kernel_spec::Symbol=:SE, mode::Symbol=:AD, independent_SE_lengthscales::Bool=true)
     if mode == :AD
         # AutoDiff approach
         return (x, θ) -> begin
@@ -370,6 +370,8 @@ function get_simple_kernel_and_params(D; kernel_spec::Symbol=:SE, num_SE::Int=1,
         # Combined kernel
         kernel = (θ) -> kernel_SE(θ[1:SE]) + kernel_SM(θ[SE+1:end])
         return kernel, θ_init, dim_θ
+    else
+        throw(ArgumentError("unknown kernel_spec $kernel_spec: expected :SE, :SEn, :SMn or :SEn_SMn"))
     end
 end
 

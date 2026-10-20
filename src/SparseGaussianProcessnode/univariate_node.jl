@@ -1,7 +1,7 @@
 # This file defines the Sparse Gaussian Process (SGP) node for univariate case
 # In particular, y = f(x), where y ∈ ℝ is a scalar, and x ∈ ℝᴰ
 
-export UniSGP, UniSGPMeta
+export UniSGP
 
 """
     UniSGP
