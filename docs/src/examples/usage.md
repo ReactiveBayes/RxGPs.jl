@@ -62,7 +62,7 @@ nothing # hide
     end
 end
 
-@meta function gpr_meta(; Xu, θ)
+@algorithm function gpr_meta(; Xu, θ)
     UniSGP() -> get_UniSGPMeta(D;
         mean_fn  = mean_fn,
         kernel   = kernel,
@@ -83,7 +83,7 @@ end
 nothing # hide
 ```
 
-Each `UniSGP` factor connects an input `x[i]` and observation `y[i]` to the shared inducing variables `v`, noise precision `w`, and hyperparameters `θ`. The `@meta` block tells RxInfer which meta object to attach to each node type.
+Each `UniSGP` factor connects an input `x[i]` and observation `y[i]` to the shared inducing variables `v`, noise precision `w`, and hyperparameters `θ`. The `@algorithm` block tells RxInfer which meta to give each node type as its algorithm.
 
 ### 4. Run inference with hyperparameter optimisation
 
@@ -109,7 +109,7 @@ for run in 1:15
     res = infer(
         model          = gp_regression(Xu=Xu, θ=θ_opt, mv_prior=q_v, gamma_prior=q_w),
         data           = (y=ytrain, x=[[x] for x in xtrain]),
-        meta           = gpr_meta(Xu=Xu, θ=θ_opt),
+        algorithm      = gpr_meta(Xu=Xu, θ=θ_opt),
         initialization = gpr_init(q_v, q_w),
         constraints    = gpr_constraints,
         returnvars     = KeepLast(),
@@ -236,7 +236,7 @@ gp_constraints_joint = @constraints begin
     q(v, w, Wg) = q(v)q(w)q(Wg)
 end
 
-@meta function joint_meta(; Xu, θ)
+@algorithm function joint_meta(; Xu, θ)
     UniSGP()     -> get_UniSGPMeta(D;
         mean_fn=mean_fn, kernel=kernel,
         operator=:fn, Xu=Xu, θ=θ)
@@ -280,7 +280,7 @@ for run in 1:15
             qWg_params=BayesBase.params(q_Wg_j),
         ),
         data           = (y=ytrain, ω=[[ω] for ω in ωtrain], x=[[x] for x in xtrain]),
-        meta           = joint_meta(Xu=Xu, θ=θ_joint),
+        algorithm      = joint_meta(Xu=Xu, θ=θ_joint),
         initialization = joint_init(
             BayesBase.params(q_v_j),
             BayesBase.params(q_w_j),

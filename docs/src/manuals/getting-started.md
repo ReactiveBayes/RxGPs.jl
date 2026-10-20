@@ -13,7 +13,7 @@ using Pkg
 Pkg.add("RxGP")
 ```
 
-RxGP depends on [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl), [ReactiveMP.jl](https://github.com/ReactiveBayes/ReactiveMP.jl), and [KernelFunctions.jl](https://github.com/JuliaGaussianProcesses/KernelFunctions.jl), which will be installed automatically.
+RxGP declares its nodes and rules with [MessagePassingRulesBase.jl](https://github.com/ReactiveBayes/MessagePassingRulesBase.jl), runs in [RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl) 6 and later, and uses [KernelFunctions.jl](https://github.com/JuliaGaussianProcesses/KernelFunctions.jl), which will be installed automatically.
 
 ## Overview of the approach
 
@@ -62,7 +62,7 @@ meta = get_UniSGPMeta(D;
     w  ~ GammaShapeRate(1.0, 1.0)
     v  ~ MvNormalMeanCovariance(zeros(M), diagm(ones(M)))
     for n in eachindex(y)
-        y[n] ~ UniSGP(x[n], v, w, θ) where { meta = meta }
+        y[n] ~ UniSGP(x[n], v, w, θ) where { algorithm = meta }
     end
 end
 

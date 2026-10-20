@@ -58,7 +58,7 @@ kernel, θ_init, _ = get_simple_kernel_and_params(D; kernel_spec=:SE)
     end
 end
 
-@meta function gpr_meta(; Xu, θ)
+@algorithm function gpr_meta(; Xu, θ)
     UniSGP() -> get_UniSGPMeta(D; mean_fn=mean_fn, kernel=kernel, operator=:fn, Xu=Xu, θ=θ)
 end
 
@@ -83,7 +83,7 @@ for run in 1:15
     res = infer(
         model          = gp_regression(Xu=Xu, θ=θ_opt, mv_prior=q_v, gamma_prior=q_w),
         data           = (y=ytrain, x=[[x] for x in xtrain]),
-        meta           = gpr_meta(Xu=Xu, θ=θ_opt),
+        algorithm      = gpr_meta(Xu=Xu, θ=θ_opt),
         initialization = gpr_init(q_v, q_w),
         constraints    = gpr_constraints,
         returnvars     = KeepLast(),

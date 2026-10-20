@@ -55,7 +55,7 @@ UniSGP
 |:-----|:-----------------|:--------|
 | `out` | `NormalMeanPrecision` | Predictive mean from inducing variables projected to the observation |
 | `in` | `ContinuousUnivariateLogPdf` | Backward message for input inference (log-pdf form) |
-| `v` | `BufferUniSGP{MvNormalWeightedMeanPrecision}` | Inducing variable update with Cholesky tracking |
+| `v` | `MvNormalWeightedMeanPrecision` | Inducing variable update |
 | `w` | `GammaShapeRate` | Gamma update for the noise precision |
 | `θ` | `ContinuousUnivariateLogPdf` or `ContinuousMultivariateLogPdf` | Log-pdf for hyperparameter optimisation |
 
@@ -125,7 +125,7 @@ UniSGP_dID
 |:-----|:-----------------|:--------|
 | `out` | `NormalMeanPrecision` or `MvNormalMeanPrecision` | Predictive mean in the operator-transformed output space |
 | `in` | `ContinuousUnivariateLogPdf` or `ContinuousMultivariateLogPdf` | Backward message for input |
-| `v` | `BufferUniSGP{MvNormalWeightedMeanPrecision}` | Inducing variable update |
+| `v` | `MvNormalWeightedMeanPrecision` | Inducing variable update |
 | `Wg` | `WishartFast` | Wishart update for the gradient noise precision |
 | `θ` | `ContinuousUnivariateLogPdf` or `ContinuousMultivariateLogPdf` | Log-pdf for hyperparameters |
 
@@ -181,13 +181,19 @@ MultiSGP
 | `out` | `MvNormalMeanPrecision` | Predictive mean via Kronecker-structured projection |
 | `in` | `ContinuousUnivariateLogPdf` or `ContinuousMultivariateLogPdf` | Backward message for input |
 | `v` | `MvNormalWeightedMeanPrecision` | Inducing variable update with Kronecker precision |
-| `w` | `Wishart` | Wishart update for the noise precision |
+| `w` | `WishartFast` | Wishart update for the noise precision |
 | `θ` | `ContinuousMultivariateLogPdf` | Log-pdf for hyperparameters |
+
+For an observed output, a Laplace approximation of the message towards `in`, which needs the input's current marginal, is available as a function a filter calls by hand:
+
+```@docs
+laplace_in_message
+```
 
 ## [Average energy](@id nodes-average-energy)
 
-Each node also defines an `@average_energy` method, used to evaluate the variational free energy (ELBO) contribution of the GP factor during inference. These are computed automatically by the ReactiveMP engine — no user action is required.
+Each node also defines its average energy with `@define_average_energy`, the term of the variational free energy (ELBO) the GP factor contributes. RxInfer computes it when inference runs with `free_energy = true`; no user action is required.
 
 ## [Node type traits](@id nodes-traits)
 
-The `@node` macro automatically registers each node with ReactiveMP's type system.
+Each node is declared with MessagePassingRulesBase's `@define_factor_node`, and its rules with `@define_message_update_rule`, under the node's meta as their algorithm.

@@ -25,7 +25,8 @@ jobs:
         version:
           - '1.10'
           - '1.11'
-          - 'pre'
+          - '1.12'
+          - '1.13'
         os:
           - ubuntu-latest
         arch:
@@ -39,6 +40,9 @@ jobs:
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        env:
+          # the test that models sharing one meta run on several threads
+          JULIA_NUM_THREADS: 2
   docs:
     name: Documentation
     runs-on: ubuntu-latest

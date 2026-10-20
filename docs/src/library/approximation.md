@@ -14,6 +14,13 @@ GenUT
 GenUnscentedTransform
 ```
 
+```@docs
+srcubature
+SphericalRadialCubature
+```
+
+[`srcubature`](@ref) gives the third-degree spherical-radial cubature, exact for polynomials up to degree three, with `2D + 1` points; [`MultiSGPMeta`](@ref) commonly uses it.
+
 `GenUnscented` (aliases: [`GenUT`](@ref), `GenUnscentedTransform`) extends the classical Unscented Transform by incorporating **skewness** and **kurtosis** of the input distribution to select sigma points and weights. This is particularly useful for non-Gaussian input beliefs.
 
 The sigma points and weights are computed from the first four moments of the distribution:
@@ -44,7 +51,8 @@ The in-place variant [`approximate_kernel_expectation!`](@ref) writes the result
 | Method | Type | Description |
 |:-------|:-----|:------------|
 | [`GenUnscented`](@ref) | `GenUnscented()` | Generalized Unscented Transform using skewness and kurtosis |
-| Gauss-Hermite | via ReactiveMP's `ghcubature` | Standard cubature-based approximation |
+| Gauss-Hermite | `ghcubature(p)`, from MessagePassingRulesApproximations | Tensor-product Gauss–Hermite cubature, `p` points per dimension |
+| Spherical-radial | [`srcubature`](@ref)`()` | Third-degree cubature with `2D + 1` points |
 
 !!! tip
     For uncertain inputs, always set the `method` field in your meta object (e.g. `method = GenUnscented()`). When inputs are observed as `PointMass`, no approximation is needed and the kernel expectations reduce to exact evaluations.

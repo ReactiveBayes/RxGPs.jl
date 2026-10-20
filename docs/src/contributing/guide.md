@@ -37,14 +37,14 @@ Contributions to RxGP.jl are welcome! This page covers how to get started.
 ## Adding a new message passing rule
 
 1. Create or edit the appropriate file in `src/rule/<node_type>_rules/<edge>.jl`.
-2. Use the `@rule` macro from ReactiveMP.jl to define the rule.
-3. Add corresponding tests in `test/node_rule/`.
-4. Make sure `Pkg.test()` passes.
+2. Define the rule with MessagePassingRulesBase's `@define_message_update_rule`, under the node's meta as its `algorithm`.
+3. Add a case for it in `test/node_rule/`: a MessagePassingRulesTestUtils table whose expected value comes from the node's density in `test/node_rule/reference.jl`, or, for a rule that returns a log-density, a comparison with it at points.
+4. Make sure `Pkg.test()` passes: after an unfiltered run it checks that every rule is selected by some test.
 
 ## Adding a new node
 
-1. Define the node struct and register it with `@node` in `src/SparseGaussianProcessnode/`.
-2. Define an `@average_energy` method.
+1. Define the node struct and declare it with `@define_factor_node` in `src/SparseGaussianProcessnode/`.
+2. Define its average energy with `@define_average_energy`.
 3. Implement rules for each edge.
 4. Create a corresponding meta type if needed.
 5. Export the node and meta from the main module.
