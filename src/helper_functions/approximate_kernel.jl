@@ -1,9 +1,20 @@
 export approximate_kernel_expectation, approximate_kernel_expectation!
 
 """
-    approximate_kernel_expectation(method::AbstractApproximationMethod, g::Function, distribution)
+    approximate_kernel_expectation(method, g, q)
+    approximate_kernel_expectation(method, g, m, V)
 
-Approximate the expectation ``\\mathbb{E}_{q(x)}[g(x)]`` where ``x \\sim`` `distribution` using the specified approximation `method`.
+The expectation ``\\mathbb{E}_{q(x)}[g(x)]`` of a function `g` returning a number or an array, under
+a Gaussian `q`, or its mean `m` and (co)variance `V`, as a weighted sum of `g` at the points of the
+approximation `method`: `ghcubature(p)`, [`srcubature`](@ref)`()` or [`GenUnscented`](@ref)`()` (which
+takes `q` itself). The rules compute their kernel statistics, such as
+``\\Psi_1 = \\mathbb{E}[k(X_u, x)]``, with it.
+
+# Example
+```julia
+q = NormalMeanVariance(0.0, 1.0)
+approximate_kernel_expectation(ghcubature(21), x -> [x^2], q)   # ≈ [1.0]
+```
 """
 function approximate_kernel_expectation(method::AbstractApproximationMethod, g::Function, distribution::D) where {D <: NormalDistributionsFamily}
     return approximate_kernel_expectation(method, g, mean(distribution), cov(distribution))
@@ -20,9 +31,11 @@ function approximate_kernel_expectation(method::AbstractApproximationMethod, g::
 end
 
 """
-    approximate_kernel_expectation!(gbar, method::AbstractApproximationMethod, g::Function, distribution)
+    approximate_kernel_expectation!(gbar, method, g, q)
+    approximate_kernel_expectation!(gbar, method, g, m, V)
 
-In-place version of [`approximate_kernel_expectation`](@ref). Writes the result into the pre-allocated array `gbar`.
+[`approximate_kernel_expectation`](@ref) written into the array `gbar`, of the shape `g` returns,
+which is overwritten and returned.
 """
 function approximate_kernel_expectation!(gbar::K, method::AbstractApproximationMethod, g::Function, distribution::D) where {K <: Array, D <: NormalDistributionsFamily}
     return approximate_kernel_expectation!(gbar, method, g, mean(distribution), cov(distribution))

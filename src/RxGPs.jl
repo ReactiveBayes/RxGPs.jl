@@ -1,3 +1,22 @@
+"""
+    RxGPs
+
+Sparse Gaussian process factor nodes for variational message passing with
+[RxInfer.jl](https://github.com/ReactiveBayes/RxInfer.jl): a GP enters a model as one factor per
+observation, and inference over its inducing variables, noise, hyperparameters and uncertain
+inputs is message passing on the factor graph.
+
+- [`UniSGP`](@ref): a scalar function of a D-dimensional input.
+- [`UniSGP_dID`](@ref): a linear operator of the function, such as its gradient, observed in ``\\mathbb{R}^P``.
+- [`MultiSGP`](@ref): a vector-valued function, through the intrinsic coregionalisation model.
+- [`UniSGPMeta`](@ref), built by [`get_UniSGPMeta`](@ref), and [`MultiSGPMeta`](@ref): their
+  algorithms, which carry the kernel, the inducing inputs and the approximation method.
+- [`predict_GP`](@ref): the posterior predictive distribution; [`grad_llh_default!`](@ref) and its
+  siblings: the M-step for the kernel hyperparameters.
+
+The nodes and rules are declared with
+[MessagePassingRulesBase.jl](https://github.com/ReactiveBayes/MessagePassingRulesBase.jl).
+"""
 module RxGPs
 
 using MessagePassingRulesBase, BayesBase, ExponentialFamily, Distributions

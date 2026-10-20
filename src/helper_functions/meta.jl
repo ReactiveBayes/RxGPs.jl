@@ -7,12 +7,26 @@ export getKuuInverse
 """
     UniSGPMeta
 
-The algorithm of the [`UniSGP`](@ref) and [`UniSGP_dID`](@ref) factor nodes, which a model gives
-them with `where { algorithm = meta }` or `@algorithm`: the approximation method, the kernel
-configuration, the inducing point locations, the factorised ``K_{uu}`` and the operator functions.
+The algorithm of the [`UniSGP`](@ref) and [`UniSGP_dID`](@ref) nodes, which a model gives them with
+`where { algorithm = meta }` or `@algorithm`. Construct it with [`get_UniSGPMeta`](@ref).
 
 It is immutable and holds no working memory, so one instance may be shared by every node of a
-model, and by models running on several threads. Construct it with [`get_UniSGPMeta`](@ref).
+model, and by models running on several threads.
+
+# Fields
+- `method`: the approximation method for the kernel expectations over an uncertain input.
+- `mean_fn`: the prior mean function ``m(x)``.
+- `Xu`: the M inducing inputs.
+- `Lm_fn`: `x -> ` the operator applied to the mean, a vector of length P.
+- `Kxx_fn`: `(x, θ) -> ` the operator applied to both arguments of the kernel at `(x, x)`, P×P.
+- `Kxu_fn`: `(x, θ, Xu) -> ` the operator applied to the cross-kernel, P×M.
+- `KuuF`: the Cholesky factorisation of ``K_{uu}`` at the `θ` the meta was built with.
+- `kernel`: the kernel constructor `θ -> k`.
+- `dims_input`, `dims_output`, `dims_theta`: D, P and the number of hyperparameters.
+
+!!! note
+    The rules towards `out`, `v` and `w` (or `Wg`) use `KuuF`, fixed at the meta's `θ`, with the
+    kernel at the mean of `q(θ)`. Keep the two equal: build a new meta when `θ` changes.
 """
 struct UniSGPMeta{M,F,I,E,D,C,CF,K} <: AbstractAlgorithm
     method          :: M
@@ -54,11 +68,27 @@ get_dims_theta(meta::UniSGPMeta) = meta.dims_theta
 """
     MultiSGPMeta(method, Xu, Kuu_inverse, kernel)
 
-The algorithm of the [`MultiSGP`](@ref) factor node: the approximation method, the inducing points,
-the precomputed ``K_{uu}^{-1}`` and the kernel constructor ``\\theta \\mapsto k``.
+The algorithm of the [`MultiSGP`](@ref) node, which a model gives it with
+`where { algorithm = meta }` or `@algorithm`.
+
+# Arguments
+- `method`: the approximation method for the kernel expectations over the input, such as
+  [`srcubature`](@ref)`()` or `ghcubature(p)`.
+- `Xu`: the M inducing inputs, vectors of the input dimension.
+- `Kuu_inverse`: ``K_{uu}^{-1}``, M×M, for the kernel at the current hyperparameters.
+- `kernel`: the kernel constructor `θ -> k`.
 
 It is immutable: the kernel expectations the rules compute in place live in each rule's scratch,
-which the engine keeps per node, so one instance may be shared by every node of a model.
+which the engine keeps per node, so one instance may be shared by every node of a model. As for
+[`UniSGPMeta`](@ref), build a new one when the hyperparameters change.
+
+# Example
+```julia
+kernel = θ -> θ[1] * with_lengthscale(SEKernel(), θ[2])
+θ = [1.0, 1.0]
+Xu = [[x, y] for x in 1.0:3.0 for y in 1.0:3.0]
+meta = MultiSGPMeta(srcubature(), Xu, inv(kernelmatrix(kernel(θ), Xu) + 1e-8I), kernel)
+```
 """
 struct MultiSGPMeta{M,I,KI,K} <: AbstractAlgorithm
     method      :: M

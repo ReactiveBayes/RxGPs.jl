@@ -3,30 +3,26 @@ export predict_GP
 #---- Define prediction functions ----#
 
 """
-    predict_GP(; m_in, q_v, q_θ, meta) → (means, covs)
+    predict_GP(; m_in, q_v, q_θ, meta::UniSGPMeta) -> (means, covs)
 
-Posterior predictive distribution at test inputs, per Eq. (30) of the dID-VSGP paper:
+The posterior predictive distribution of the GP, under the operator of `meta`, at the test inputs
+`m_in`, given the marginal `q_v` of the inducing variables (Eq. 30 of the dID-VSGP paper):
 
-    μ_{f̃*} = L̃m(x*) + K̃_xu(x*)(μ_v - K_uu⁻¹ mᵤ)
-    Σ_{f̃*} = K̃_xx(x*) + K̃_xu(x*)(Σ_v - K_uu⁻¹)K̃_xu(x*)ᵀ
+```math
+\\mu_* = \\tilde{L}m(x_*) + \\tilde{K}_{*u}\\,(\\mu_v - K_{uu}^{-1} m_u), \\qquad
+\\Sigma_* = \\tilde{K}_{**} + \\tilde{K}_{*u}\\,(\\Sigma_v - K_{uu}^{-1})\\,\\tilde{K}_{*u}^\\top.
+```
 
-The operator encoded in meta (`:fn`, `:grad`, `:joint_fn_grad`, or custom) determines the
-output dimension P at each test point:
+# Keywords
+- `m_in`: the test inputs, numbers or vectors of length D.
+- `q_v`: the marginal of the inducing variables, a multivariate normal.
+- `q_θ`: the kernel hyperparameters: a vector, or a distribution whose mean is used.
+- `meta`: the [`UniSGPMeta`](@ref) the model ran with, built at the same `θ`.
 
-  - `:fn`            P=1     → means::Vector{<:AbstractVector}, covs::Vector{<:AbstractMatrix}; each mean is a length-1 vector (use `means[i][1]`)
-  - `:grad`          P=D     → same shapes, P-dim entries
-  - `:joint_fn_grad` P=1+D   → same shapes, P-dim entries
-
-Arguments
-    m_in: vector of D-dimensional inputs, e.g. [[1.0, 2.0], [3.0, 4.0], ...]
-    q_v::MultivariateNormalDistributionsFamily: variational posterior over inducing variables.
-    q_θ::Any: kernel hyperparameters (PointMass or plain vector).
-    meta::UniSGPMeta: meta object built by get_UniSGPMeta.
-
-Returns
-    (means, covs)
-        means::Vector{<:AbstractVector}: P-dim predictive mean vector per test input.
-        covs::Vector{<:AbstractMatrix}: P×P predictive covariance matrix per test input.
+# Returns
+`means`, a vector with the predictive mean at each test input, and `covs`, its covariance. Each
+mean has length P, the output dimension of the operator: 1 for `:fn` (so the function's mean at
+input `i` is `means[i][1]`), D for `:grad` and 1 + D for `:joint_fn_grad`; each covariance is P×P.
 """
 function predict_GP(; m_in::AbstractVector{<:AbstractVector{<:Real}},
                      q_v::MultivariateNormalDistributionsFamily,
