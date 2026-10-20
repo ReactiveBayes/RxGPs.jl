@@ -42,3 +42,9 @@ end
 function approximate_kernel_expectation(method::GenUnscented, g::Function, q::D) where {D <: NormalDistributionsFamily}
     return approximate_expectation(method, q, g)
 end
+
+# The in-place counterpart, on the same GenUT sigma points.
+function approximate_kernel_expectation!(gbar::K, method::GenUnscented, g::Function, q::D) where {K <: Array, D <: NormalDistributionsFamily}
+    gbar .= approximate_expectation(method, q, g)
+    return gbar
+end
