@@ -60,7 +60,7 @@ struct UniSGP_dID end
             Ωx = approximate_kernel_expectation(meta.method, (x) -> Lm_fn(x), q_in)
             Ω0 = approximate_kernel_expectation(meta.method, (x) -> Kxx_fn(x, θ), q_in)
             Ω1 = approximate_kernel_expectation(meta.method, (x) -> Kxu_fn(x, θ, meta.Xu), q_in)
-            Ω2 = approximate_kernel_expectation(meta.method, (x) -> transpose(Kxu_fn(x, θ, meta.Xu))*Kxu_fn(x, θ, meta.Xu), q_in)
+            ΩK = approximate_kernel_expectation(meta.method, (x) -> (K = Kxu_fn(x, θ, meta.Xu); K * (meta.KuuF \ transpose(K))), q_in)
             Ω5 = approximate_kernel_expectation(meta.method, (x) -> Lm_fn(x) * transpose(Lm_fn(x)), q_in)
             Ω6 = approximate_kernel_expectation(meta.method, (x) -> Lm_fn(x) * transpose(μ_v) * transpose(Kxu_fn(x, θ, meta.Xu)), q_in)
             Ω7 = approximate_kernel_expectation(meta.method, (x) -> Lm_fn(x) * transpose(Ku_mxu) * transpose(Kxu_fn(x, θ, meta.Xu)), q_in)
@@ -74,7 +74,7 @@ struct UniSGP_dID end
             Ωx = Lm_fn(μ_in)
             Ω0 = Kxx_fn(μ_in, θ)
             Ω1 = Kxu_fn(μ_in, θ, meta.Xu)
-            Ω2 = transpose(Ω1) * Ω1
+            ΩK = Ω1 * (meta.KuuF \ transpose(Ω1))
             Ω5 = Ωx * transpose(Ωx)
             Ω6 = Ωx * transpose(μ_v) * transpose(Ω1)
             Ω7 = Ωx * transpose(Ku_mxu) * transpose(Ω1)
@@ -86,8 +86,9 @@ struct UniSGP_dID end
             Ω13 = Ω1 * Ku_mxu * transpose(Ku_mxu) * transpose(Ω1)
         end
 
-        G1 = Ω0 - Ω1 * (meta.KuuF \ transpose(Ω1))
-        A_G2 = typeof(q_out) <: MultivariateNormalDistributionsFamily ? μ_ω * transpose(μ_ω) + Σ_ω : μ_ω * transpose(μ_ω)
+        # G1 = E[K̃_xx - K̃_xu Kuu⁻¹ K̃_ux]
+        G1 = Ω0 - ΩK
+        A_G2 = q_out isa Distribution ? μ_ω * transpose(μ_ω) + Σ_ω : μ_ω * transpose(μ_ω)
         B_G2 = μ_ω * ( transpose(Ωx) + ( transpose(μ_v) - transpose(Ku_mxu) ) * transpose(Ω1) )
         C_G2 = (Ωx + Ω1 * ( μ_v - Ku_mxu )) * transpose(μ_ω)
         D_G2 = Ω5 + Ω6 - Ω7 + Ω8 + Ω9 - Ω10 - Ω11 - Ω12 + Ω13

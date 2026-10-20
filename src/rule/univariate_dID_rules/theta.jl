@@ -14,8 +14,10 @@
         Wg_bar = mean(q_Wg)
         mf = getMeanFn(meta)
         mxu = apply_mean_fn.(meta.Xu, mf)
-        Ku_mxu = meta.KuuF \ mxu
-        mxuT_KuT = transpose(Ku_mxu)
+        # K_uu depends on θ, as in the node's b̃ and Ã
+        kernel = getKernel(meta)
+        KuuF = (θ) -> fastcholesky(kernelmatrix(kernel(θ), meta.Xu) + KUU_JITTER * I)
+        Ku_mxu = (θ) -> KuuF(θ) \ mxu
         Rv = μ_v * transpose(μ_v) + Σ_v
         Lm_fn = getLm_fn(meta)
         Kxx_fn = getKxx_fn(meta)
@@ -24,21 +26,22 @@
         if q_in isa Distribution
             Ω0 = (θ) -> approximate_kernel_expectation(meta.method, (x) -> Kxx_fn(x, θ), q_in)
             Ω1 = (θ) -> approximate_kernel_expectation(meta.method, (x) -> Kxu_fn(x, θ, meta.Xu), q_in)
-            Ω2 = (θ) -> approximate_kernel_expectation(meta.method, (x) -> transpose(Kxu_fn(x, θ, meta.Xu))*Kxu_fn(x, θ, meta.Xu), q_in)
+            ΩK = (θ) -> (F = KuuF(θ); approximate_kernel_expectation(meta.method, (x) -> (K = Kxu_fn(x, θ, meta.Xu); K * (F \ transpose(K))), q_in))
             Ω3 = (θ) -> approximate_kernel_expectation(meta.method, (x) -> transpose(Kxu_fn(x, θ, meta.Xu))*Wg_bar*Kxu_fn(x, θ, meta.Xu), q_in)
             Ω4 = (θ) -> approximate_kernel_expectation(meta.method, (x) -> transpose(Lm_fn(x))*Wg_bar*Kxu_fn(x, θ, meta.Xu), q_in)
         else
             Ω0 = (θ) -> Kxx_fn(μ_in, θ)
             Ω1 = (θ) -> Kxu_fn(μ_in, θ, meta.Xu)
-            Ω2 = (θ) -> transpose(Ω1(θ)) * Ω1(θ)
+            ΩK = (θ) -> Ω1(θ) * (KuuF(θ) \ transpose(Ω1(θ)))
             Ω3 = (θ) -> transpose(Ω1(θ)) * Wg_bar * Ω1(θ)
             Ω4 = (θ) -> transpose(Lm_fn(μ_in)) * Wg_bar * Ω1(θ)
         end
 
 
-        G1 = (θ) -> Ω0(θ) - Ω1(θ) * (meta.KuuF \ transpose(Ω1(θ)))
-        part_A = (θ) -> 2 * dot(Ω4(θ), (μ_v - Ku_mxu)) + dot((mxuT_KuT - 2*transpose(μ_v)), Ω3(θ)*Ku_mxu) + tr(Ω3(θ) * Rv)
-        part_B = (θ) -> 2 * dot(transpose(μ_ω), Wg_bar * Ω1(θ) * (μ_v - Ku_mxu))
+        # G1 = E[K̃_xx - K̃_xu Kuu⁻¹ K̃_ux]
+        G1 = (θ) -> Ω0(θ) - ΩK(θ)
+        part_A = (θ) -> (c = Ku_mxu(θ); 2 * dot(Ω4(θ), (μ_v - c)) + dot((transpose(c) - 2*transpose(μ_v)), Ω3(θ)*c) + tr(Ω3(θ) * Rv))
+        part_B = (θ) -> 2 * dot(transpose(μ_ω), Wg_bar * Ω1(θ) * (μ_v - Ku_mxu(θ)))
 
         log_backwardmess = (θ) -> -0.5 * tr( Wg_bar * G1(θ) ) - 0.5 * (part_A(θ) - part_B(θ))
 
