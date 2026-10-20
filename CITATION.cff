@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use RxGPs.jl, please cite the paper below."
+title: "RxGPs.jl: sparse Gaussian process factor nodes for variational message passing"
+type: software
+license: MIT
+repository-code: "https://github.com/ReactiveBayes/RxGPs.jl"
+authors:
+  - family-names: Nguyen
+    given-names: "Hoang M. H."
+    email: m.h.n.hoang@tue.nl
+  - family-names: Ledbetter
+    given-names: "A. H."
+    email: a.h.ledbetter@tue.nl
+preferred-citation:
+  type: article
+  title: "A Factor Graph Approach to Variational Sparse Gaussian Processes"
+  authors:
+    - family-names: Nguyen
+      given-names: "Hoang M. H."
+    - family-names: Şenöz
+      given-names: İsmail
+    - family-names: de Vries
+      given-names: Bert
+  journal: "IEEE Open Journal of Signal Processing"
+  volume: 6
+  start: 815
+  end: 837
+  year: 2025
+  doi: "10.1109/OJSP.2025.3585440"
+references:
+  - type: article
+    title: "A Factor-Graph Approach to Decoupled Inter-Domain Variational Sparse Gaussian Processes with Arbitrary Mean Functions"
+    authors:
+      - family-names: Ledbetter
+        given-names: "A. H."
+      - family-names: Nguyen
+        given-names: "Hoang M. H."
+      - family-names: de Vries
+        given-names: Bert
+    status: submitted
