@@ -68,9 +68,14 @@ struct UniSGP end
 
         Ψ2_Ku_mxu = Ψ2 * Ku_mxu
 
-        I1 = Ψ0
-        α = meta.KuuF.L \ Ψ1_trans
-        I1 -= jdotavx(α,α) #I1 = Ψ0 - tr( meta.KuuF \ Ψ2 )
+        # I1 = Ψ0 - tr(Kuu⁻¹ Ψ2) = Ψ0 - E[k_xu' Kuu⁻¹ k_xu], without the jitter Ψ2 carries; Ψ1' Kuu⁻¹ Ψ1
+        # equals it only for a point-mass input
+        if q_in isa Distribution
+            I1 = Ψ0 - approximate_kernel_expectation(meta.method, (x) -> (α = meta.KuuF.L \ kernelmatrix(kernel(θ), meta.Xu, [x]); [dot(α, α)]), q_in)[1]
+        else
+            α = meta.KuuF.L \ Ψ1_trans
+            I1 = Ψ0 - jdotavx(α, α)
+        end
 
         I4 = (
             μ_y^2 
