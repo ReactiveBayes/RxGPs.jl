@@ -1,22 +1,25 @@
 module RxGP
 
-using RxInfer, LoopVectorization, ReactiveMP
-using Zygote, Optim, ForwardDiff, StatsFuns, KernelFunctions, LinearAlgebra
-using Distributions, Random, SparseArrays
+using MessagePassingRulesBase, BayesBase, ExponentialFamily, Distributions
+using MessagePassingRulesBase: AbstractAlgorithm, diageye
+using ExponentialFamily: WishartFast
+using MessagePassingRulesApproximations: AbstractApproximationMethod, ghcubature
+using FastCholesky: fastcholesky, fastcholesky!, cholinv, cholsqrt
+using LoopVectorization, Zygote, Optim, ForwardDiff, StatsFuns, KernelFunctions, LinearAlgebra
+using Random, SparseArrays
 
-import ReactiveMP: getweights, getpoints, approximate_meancov, WishartFast
+import MessagePassingRulesApproximations: getweights, getpoints
 
 # other
 include("types.jl")
 
 # helper functions
 include("helper_functions/genUT.jl")
+include("helper_functions/sphericalradial.jl")
 include("helper_functions/approximate_kernel.jl")
-include("helper_functions/derivative.jl")
 include("helper_functions/gp_cache.jl")
 include("helper_functions/other_functions.jl")
 include("helper_functions/meta.jl")
-include("helper_functions/common.jl")
 include("helper_functions/univariate_prediction_fns.jl")
 
 # node 
@@ -42,5 +45,8 @@ include("rule/multivariate_rules/in.jl")
 include("rule/multivariate_rules/v.jl")
 include("rule/multivariate_rules/w.jl")
 include("rule/multivariate_rules/theta.jl")
+
+# The M-step helpers call the rules.
+include("helper_functions/derivative.jl")
 
 end

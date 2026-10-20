@@ -12,6 +12,17 @@ const GenUT = GenUnscented
 """An alias for the [`GenUnscented`](@ref) approximation method."""
 const GenUnscentedTransform = GenUnscented
 
+# Splits a sigma point of the joint of several inputs back into the inputs: a number for size
+# `()`, a vector view for `(n,)` and a matrix view for `(n, m)`, in order.
+__splitjoinelement(x::AbstractVector, start, ::Tuple{}) = x[start]
+__splitjoinelement(x::AbstractVector, start, size::Tuple{Int}) = view(x, start:(start + prod(size) - 1))
+__splitjoinelement(x::AbstractVector, start, size::Tuple{Int, Int}) = reshape(view(x, start:(start + prod(size) - 1)), first(size), last(size))
+
+function __splitjoin(x::AbstractVector, sizes::Tuple)
+    starts = cumsum((1, map(prod, Base.front(sizes))...))
+    return map((size, start) -> __splitjoinelement(x, start, size), sizes, starts)
+end
+
 # add univariate case
 function approximate_expectation(method::GenUnscented, q::D, f::F) where {F, D <: Distribution}
     m = mean(q)

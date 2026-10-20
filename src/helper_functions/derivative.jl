@@ -6,14 +6,14 @@ export neg_log_backwardmess_multi, grad_llh_multi, grad_llh_multi!
 """
     neg_log_backwardmess_msg(θ; in_data_, out_data_, q_v, q_W_, meta_)
 
-Negative log backward message toward `θ` computed via `@call_rule` on `UniSGP_dID(:θ, Marginalisation)`.
+Negative log backward message toward `θ`, computed with the [`UniSGP_dID`](@ref) rule towards `θ`.
 Sums log-pdf contributions over all data points and batches in `in_data_`.
 """
 function neg_log_backwardmess_msg(θ; in_data_, out_data_, q_v, q_W_, meta_)
     llh = 0.0
     for (i, in_data) in enumerate(in_data_)
         for (j, data_point) in enumerate(in_data)
-            bwm_θ = @call_rule UniSGP_dID(:θ, Marginalisation) (q_out=out_data_[i][j], q_in=data_point, q_v=q_v, q_Wg=q_W_[i], meta=meta_[i])
+            bwm_θ = getresult(call_message_update_rule(UniSGP_dID, :θ; q = (out = out_data_[i][j], in = data_point, v = q_v, Wg = q_W_[i]), algorithm = meta_[i]))
             llh += logpdf(bwm_θ, θ)
         end
     end
@@ -159,9 +159,9 @@ function grad_llh_default!(grad, θ; ω_data=nothing, y_data=nothing, x_y_data, 
 end
 
 #this is for big data
-function grad_llh_new!(grad, θ; y_data, x_data, qv, qw, kernel, Xu, chunk_size)
-    newfunc = (x) -> neg_log_backwardmess_fast(x;y_data=y_data,x_data=x_data,qv=qv,qw=qw,kernel=kernel,Xu=Xu)
-    cfg = GradientConfig(newfunc, θ, Chunk{chunk_size}())
+function grad_llh_new!(grad, θ; y_data, x_data, qv, qw, kernel, Xu, chunk_size, mean_fn = (x) -> 0.0)
+    newfunc = (x) -> neg_log_backwardmess_fast(x; y_data=y_data, x_y_data=x_data, x_ω_data=nothing, q_v=qv, q_w=qw, kernel=kernel, mean_fn=mean_fn, Xu=Xu)
+    cfg = ForwardDiff.GradientConfig(newfunc, θ, ForwardDiff.Chunk{chunk_size}())
     return ForwardDiff.gradient!(grad, newfunc, θ,cfg)
 end
 

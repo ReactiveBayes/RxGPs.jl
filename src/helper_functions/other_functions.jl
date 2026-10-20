@@ -98,13 +98,6 @@ function get_UniSGPMeta(D; method=ghcubature(21), mean_fn, kernel, kernel_spec::
     Kuu = kernelmatrix(kernel(θ), Xu) + 1e-8 * I
     KuuF = cholesky(Kuu)
     x_dummy = zeros(D)
-    Ψx = 0.0
-    Ψxx = 0.0
-    Ψ0 = kernelmatrix(kernel(θ), [x_dummy])[1]
-    Ψ1_trans = kernelmatrix(kernel(θ), Xu, [x_dummy])
-    Ψ2 = kernelmatrix(kernel(θ), Xu, [x_dummy]) * kernelmatrix(kernel(θ), [x_dummy], Xu)
-    Ψ3 = kernelmatrix(kernel(θ), [x_dummy], Xu)
-    Uv = zeros(size(Xu, 1), size(Xu, 1))
 
     if Lm_fn === nothing || Kxu_fn === nothing || Kxx_fn === nothing
         (Lm_fn_default, Kxu_fn_default, Kxx_fn_default, dims_output) =
@@ -118,7 +111,7 @@ function get_UniSGPMeta(D; method=ghcubature(21), mean_fn, kernel, kernel_spec::
         dims_output = length(Lm_fn(x_dummy))
     end
 
-    return UniSGPMeta(method, mean_fn, Xu, Ψx, Ψxx, Ψ0, Ψ1_trans, Ψ2, Ψ3, Lm_fn, Kxx_fn, Kxu_fn, KuuF, kernel, dims_input, dims_output, dims_theta, Uv, 0, 1)
+    return UniSGPMeta(method, mean_fn, Xu, Lm_fn, Kxx_fn, Kxu_fn, KuuF, kernel, dims_input, dims_output, dims_theta)
 end
 
 
