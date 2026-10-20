@@ -1,7 +1,6 @@
 @testsnippet setup_snippet begin
     using RxGP
     using RxInfer
-    using ReactiveMP
     using Random
     using Distributions
     using StableRNGs
@@ -10,7 +9,7 @@
     using StatsFuns
     using Test
 
-    const grad_default_method = ReactiveMP.ghcubature(21)
+    const grad_default_method = ghcubature(21)
 
     test_mean_fn(x) = begin
         sum(x)
@@ -39,7 +38,7 @@
 end
 
 @testitem "helper_functions/approximate_kernel/approximate_kernel_expectation" setup=[setup_snippet] begin
-    using RxGP, RxInfer, ReactiveMP, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
+    using RxGP, RxInfer, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
     import RxGP: approximate_kernel_expectation, approximate_kernel_expectation!
     
     ctx = test_fixture(;D=1)
@@ -82,7 +81,7 @@ end
 end
 
 @testitem "helper_functions/approximate_kernel/GP quantities approximation" setup=[setup_snippet] begin
-    using RxGP, RxInfer, ReactiveMP, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
+    using RxGP, RxInfer, Random, Distributions, StableRNGs, KernelFunctions, LinearAlgebra, Test
     import RxGP: approximate_kernel_expectation, approximate_kernel_expectation!
 
     ctx = test_fixture(;D=3)

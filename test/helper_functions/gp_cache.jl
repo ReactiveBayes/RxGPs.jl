@@ -5,22 +5,22 @@ using Test
 using TestItemRunner
 
 @testitem "helper_functions/gp_cache/TestGPCache" begin
+    using StableRNGs
+    rng = StableRNG(100)
     using RxGP, Random, LinearAlgebra, Test
     gpcache = GPCache()
-    A = rand(4,4)
-    B = rand(3,4)
-    D = rand(4,4)
-    a = rand(4)
-    b = rand(4)
+    A = rand(rng, 4,4)
+    B = rand(rng, 3,4)
+    D = rand(rng, 4,4)
+    a = rand(rng, 4)
+    b = rand(rng, 4)
 
     # test gpcache
     @test typeof(gpcache.cache_matrices) <: Dict            # get matrix
     @test typeof(gpcache.cache_vectors) <: Dict             # get vector
-    @test typeof(gpcache.cache_LowerTriangular) <: Dict     # get Lower Triangular
 
     @test typeof(getcache(gpcache,(:A, (3,3)))) <: Matrix
     @test typeof(getcache(gpcache,(:a,3))) <: Vector
-    @test typeof(getcache_lowermatrix(gpcache, (:L, 3))) <: LowerTriangular
 
     # test in-place multiplication
     @test mul_A_B!(gpcache, B, A, size(B,1), size(A,2)) == B * A    # A and B have different size

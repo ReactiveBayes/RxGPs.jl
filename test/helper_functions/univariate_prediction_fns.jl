@@ -1,7 +1,6 @@
 @testsnippet pred_snippet begin
     using RxGP
     using RxInfer
-    using ReactiveMP
     using Random
     using Distributions
     using StableRNGs
@@ -10,7 +9,7 @@
     using StatsFuns
     using Test
 
-    const grad_default_method = ReactiveMP.ghcubature(21)
+    const grad_default_method = ghcubature(21)
 
     test_mean_fn(x) = begin
         sum(x)
