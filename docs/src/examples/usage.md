@@ -54,7 +54,7 @@ nothing # hide
 ### 3. Define the model
 
 ```@example gpr
-@model function gp_regression(y, x, Xu, θ, mv_prior, gamma_prior)
+@model function gp_regression(y, x, θ, mv_prior, gamma_prior)
     v ~ mv_prior
     w ~ gamma_prior
     for i in eachindex(y)
@@ -92,9 +92,8 @@ We alternate between VMP inference (E-step) and gradient-based hyperparameter up
 ```@example gpr
 using Flux, ForwardDiff
 
-optimizer = Flux.AdaMax(0.01)
-state = Flux.setup(optimizer, θ_init)
 θ_opt = deepcopy(θ_init)
+state = Flux.setup(Flux.AdaMax(0.01), θ_opt)
 grad  = similar(θ_opt)
 
 q_v = MvNormalWeightedMeanPrecision(zeros(Nu), 50 * diageye(Nu))
@@ -107,7 +106,7 @@ for run in 1:15
     global q_v, q_w
     # E-step: run VMP inference (feed previous posterior as prior)
     res = infer(
-        model          = gp_regression(Xu=Xu, θ=θ_opt, mv_prior=q_v, gamma_prior=q_w),
+        model          = gp_regression(θ=θ_opt, mv_prior=q_v, gamma_prior=q_w),
         data           = (y=ytrain, x=[[x] for x in xtrain]),
         algorithm      = gpr_meta(Xu=Xu, θ=θ_opt),
         initialization = gpr_init(q_v, q_w),
@@ -133,7 +132,7 @@ for run in 1:15
             mean_fn   = mean_fn,
             Xu        = Xu,
         )
-        Flux.Optimise.update!(state, θ_opt, grad)
+        Flux.update!(state, θ_opt, grad)
     end
 end
 
@@ -207,15 +206,7 @@ savefig("gpr-grad-data.svg"); nothing # hide
 ### 2. Build a joint model
 
 ```@example gpr
-meta_grad = get_UniSGPMeta(D;
-    mean_fn  = mean_fn,
-    kernel   = kernel,
-    operator = :grad,
-    Xu       = Xu,
-    θ        = θ_init,
-)
-
-@model function gp_regression_with_grads(y, ω, x, Xu, θ, qv_params, qw_params, qWg_params)
+@model function gp_regression_with_grads(y, ω, x, θ, qv_params, qw_params, qWg_params)
     v  ~ MvNormalWeightedMeanPrecision(qv_params...)
     w  ~ GammaShapeRate(qw_params...)
     Wg ~ Wishart(qWg_params...)
@@ -273,7 +264,6 @@ for run in 1:15
     # Feed previous posteriors as priors
     res_j = infer(
         model          = gp_regression_with_grads(
-            Xu=Xu,
             θ=θ_joint,
             qv_params=BayesBase.params(q_v_j),
             qw_params=BayesBase.params(q_w_j),
@@ -313,7 +303,7 @@ for run in 1:15
             mean_fn  = mean_fn,
             Xu       = Xu,
         )
-        Flux.Optimise.update!(state_j, θ_joint, grad_j)
+        Flux.update!(state_j, θ_joint, grad_j)
     end
 end
 

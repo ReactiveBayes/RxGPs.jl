@@ -36,11 +36,11 @@ end
     # multivariate normal: mean, covariance and each component's fourth central moment
     m = [0.4, -1.1]
     for V in ([0.5 0.0; 0.0 2.0], [1.0 0.3; 0.3 0.8])
-        q = MvNormalMeanCovariance(m, V)
-        E = f -> approximate_kernel_expectation(GenUnscented(), f, q)
-        @test E(x -> x) ≈ m
-        @test E(x -> (x - m) * transpose(x - m)) ≈ V
-        @test E(x -> (x - m) .^ 4) ≈ 3 .* diag(V) .^ 2
+        qm = MvNormalMeanCovariance(m, V)
+        Em = f -> approximate_kernel_expectation(GenUnscented(), f, qm)
+        @test Em(x -> x) ≈ m
+        @test Em(x -> (x - m) * transpose(x - m)) ≈ V
+        @test Em(x -> (x - m) .^ 4) ≈ 3 .* diag(V) .^ 2
     end
 end
 

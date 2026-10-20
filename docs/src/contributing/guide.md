@@ -30,7 +30,9 @@ Contributions to RxGPs.jl are welcome! This page covers how to get started.
 | `src/SparseGaussianProcessnode/` | Node definitions and average energy computations |
 | `src/rule/` | Message passing update rules, organised by node and edge |
 | `src/helper_functions/` | Kernels, caching, approximation, prediction, meta, utilities |
-| `test/` | Unit tests mirroring the `src/` structure |
+| `test/node_rule/` | The rules and average energies, against each node's density (`reference.jl`) |
+| `test/helper_functions/` | Kernels, approximations, cache, prediction and the M-step |
+| `test/engine/` | Inference with RxInfer, end to end |
 | `examples/` | Jupyter notebook examples |
 | `docs/` | Documentation (Documenter.jl) |
 
@@ -46,17 +48,18 @@ Contributions to RxGPs.jl are welcome! This page covers how to get started.
 1. Define the node struct and declare it with `@define_factor_node` in `src/SparseGaussianProcessnode/`.
 2. Define its average energy with `@define_average_energy`.
 3. Implement rules for each edge.
-4. Create a corresponding meta type if needed.
+4. Create a meta type for it if needed: a subtype of MessagePassingRulesBase's `AbstractAlgorithm`, immutable, with the rules declared under it as their `algorithm`. Working memory belongs in a rule's `scratch`, not in the meta.
 5. Export the node and meta from the main module.
 6. Add tests and update documentation.
 
 ## Building the documentation locally
 
+From the repository root, `make docs` builds the site into `docs/build/`, and `make docs-serve`
+serves it with live reload (in draft mode, which skips running the examples). Without `make`:
+
 ```julia
 using Pkg
 Pkg.activate("docs")
-Pkg.instantiate()
+Pkg.instantiate()          # docs/Project.toml takes RxGPs from the repository (on Julia 1.10, also Pkg.develop(path = "."))
 include("docs/make.jl")
 ```
-
-The built documentation will be in `docs/build/`.

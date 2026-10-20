@@ -32,14 +32,15 @@ get_UniSGPMeta
 | Argument | Default | Description |
 |:---------|:--------|:------------|
 | `D` | (positional) | Input dimensionality |
-| `method` | `nothing` | Approximation method (e.g. `GenUnscented()`) for uncertain inputs |
+| `method` | `ghcubature(21)` | Approximation method for uncertain inputs: `ghcubature(p)`, `srcubature()` or `GenUnscented()` |
 | `mean_fn` | (required) | Prior mean function `m(x) → ℝ` |
 | `kernel` | (required) | Kernel constructor `θ → Kernel` (from KernelFunctions.jl) |
 | `kernel_spec` | `:SE` | Kernel family: `:SE`, `:SEn`, `:SMn`, or `:SEn_SMn` |
-| `mode` | `:AD` | Differentiation mode: `:AD` (autodiff) or `:AN` (analytic, SE only) |
+| `mode` | `:AD` | Kernel derivatives for the gradient operators: `:AD` (automatic differentiation) or `:AN` (closed form, for `:SE` and `:SEn`) |
+| `independent_SE_lengthscales` | `true` | Whether each input dimension has its own lengthscale |
 | `operator` | `:fn` | Linear operator: `:fn` (identity, P=1), `:grad` (gradient, P=D), `:joint_fn_grad` (P=1+D) |
-| `Xu` | (required) | Vector of inducing point locations |
-| `θ` | (required) | Initial kernel hyperparameters |
+| `Xu` | (required) | The inducing inputs: numbers for `D = 1`, otherwise vectors of length `D` |
+| `θ` | (required) | Kernel hyperparameters at which ``K_{uu}`` is factorised; build a new meta when they change |
 | `Lm_fn`, `Kxu_fn`, `Kxx_fn` | `nothing` | Override operator functions for a custom linear operator |
 
 ### Accessors

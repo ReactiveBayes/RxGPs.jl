@@ -37,19 +37,6 @@ The output dimensionality ``P`` at each test point depends on the operator:
 
 ### Example
 
-```julia
-x_test = [[xi] for xi in range(0, 10, length=100)]
-q_v = result.posteriors[:v][end]
-
-means, covs = predict_GP(
-    m_in = x_test,
-    q_v  = q_v,
-    q_θ  = PointMass(θ_fixed),
-    meta = meta,
-)
-
-# Plot mean ± 2σ
-μ = [m[1] for m in means]
-σ = [sqrt(C[1,1]) for C in covs]
-plot(getindex.(x_test, 1), μ, ribbon=2σ, label="Predictive")
-```
+[Getting started](@ref getting-started) runs `predict_GP` on a fitted regression and plots its mean
+and ``2\sigma`` band, and the [usage examples](@ref examples-usage) do the same after learning
+the hyperparameters. The meta passed to `predict_GP` must be built at the same `θ` as `q_θ`.

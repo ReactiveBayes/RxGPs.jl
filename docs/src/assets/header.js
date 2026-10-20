@@ -38,7 +38,8 @@ window.onload = function() {
                     { title: "RxInfer", link: "https://docs.rxinfer.com/stable/", icon: [ "fas", "fa-diagram-project" ] },
                     { title: "ReactiveMP", link: "https://reactivebayes.github.io/ReactiveMP.jl/stable/", icon: [ "fas", "fa-envelope" ] },
                     { title: "GraphPPL", link: "https://reactivebayes.github.io/GraphPPL.jl/stable/", icon: [ "fas", "fa-circle-nodes" ] },
-                    { title: "RxGPs Docs", link: "https://reactivebayes.github.io/RxGPs.jl/stable/", icon: [ "fas", "fa-book" ] },
+                    { title: "MessagePassingRulesBase", link: "https://reactivebayes.github.io/MessagePassingRulesBase.jl/stable/", icon: [ "fas", "fa-cubes" ] },
+                    { title: "RxGPs Docs", link: "https://reactivebayes.github.io/RxGPs.jl/dev/", icon: [ "fas", "fa-book" ] },
                     { title: "Examples", link: "https://examples.rxinfer.com/", icon: [ "fas", "fa-laptop-code" ] },
                     { title: "Discussions", link: "https://github.com/orgs/ReactiveBayes/discussions", icon: [ "far", "fa-comment" ] },
                     { title: "GitHub", link: "https://github.com/ReactiveBayes/RxGPs.jl", icon: [ "fab", "fa-github" ] },
@@ -95,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
             { base: 'https://examples.rxinfer.com', label: 'RxInferExamples Docs', index: null, promise: null },
             { base: 'https://reactivebayes.github.io/ReactiveMP.jl/stable', label: 'ReactiveMP Docs', index: null, promise: null },
             { base: 'https://reactivebayes.github.io/GraphPPL.jl/stable', label: 'GraphPPL Docs', index: null, promise: null },
+            { base: 'https://reactivebayes.github.io/MessagePassingRulesBase.jl/stable', label: 'MessagePassingRulesBase Docs', index: null, promise: null },
         ];
 
         function esc(s) {

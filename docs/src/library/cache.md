@@ -12,7 +12,7 @@ The [`GPCache`](@ref) system provides pre-allocated matrix and vector storage to
 GPCache
 ```
 
-A `GPCache` holds three dictionaries, keyed by `(Symbol, size)` tuples:
+A `GPCache` holds two dictionaries, keyed by `(Symbol, size)` tuples:
 
 | Storage | Key type | Value type |
 |:--------|:---------|:-----------|

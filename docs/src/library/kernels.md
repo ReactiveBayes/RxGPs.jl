@@ -29,6 +29,10 @@ This function returns a tuple `(kernel_fn, θ_init, dim_θ)` where:
 
 The `independent_SE_lengthscales` flag controls whether each input dimension gets its own lengthscale (`true`, default) or all dimensions share one (`false`).
 
+`num_SE` and `num_SM` (both 1 by default) are keywords of
+[`get_simple_kernel_and_params`](@ref): the number of squared-exponential and spectral-mixture
+components. Its docstring gives the order of the hyperparameters in `θ` for each family.
+
 ## Gradient and Hessian kernel functions
 
 For derivative observation models (`:grad` and `:joint_fn_grad` operators), RxGPs needs the gradient and Hessian of the kernel with respect to the input:
@@ -45,4 +49,4 @@ These are called internally by [`get_UniSGPMeta`](@ref) when `operator` is `:gra
 | Mode | Description | Supported kernels |
 |:-----|:------------|:-----------------|
 | `:AD` | Automatic differentiation via ForwardDiff.jl | All kernel families |
-| `:AN` | Analytic closed-form expressions (~10× faster) | `:SE`, `:SEn` only |
+| `:AN` | Closed-form expressions, faster than automatic differentiation | `:SE`, `:SEn` only |

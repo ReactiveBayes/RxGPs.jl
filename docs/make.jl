@@ -5,9 +5,12 @@ using Documenter
 ## https://gr-framework.org/workstations.html#no-output
 ENV["GKSwstype"] = "100"
 
-DocMeta.setdocmeta!(RxGPs, :DocTestSetup, :(using RxGPs); recursive=true)
+# `make docs-serve` sets DOCS_DRAFT: the pages build without running their examples
+const draft = get(ENV, "DOCS_DRAFT", "false") == "true"
 
 makedocs(;
+    draft = draft,
+    warnonly = draft,
     modules=[RxGPs],
     authors="HoangMHNguyen <m.h.n.hoang@tue.nl>, ofSingularMind <a.h.ledbetter@tue.nl>, and contributors",
     sitename="RxGPs.jl",
@@ -47,4 +50,5 @@ makedocs(;
 deploydocs(;
     repo="github.com/ReactiveBayes/RxGPs.jl",
     devbranch="main",
+    push_preview=true,
 )

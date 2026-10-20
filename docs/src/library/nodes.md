@@ -4,13 +4,18 @@ CurrentModule = RxGPs
 
 # [Factor nodes](@id nodes-reference)
 
-RxGPs defines three sparse Gaussian process factor nodes. Each node represents a local GP likelihood factor in a factor graph, with message passing rules defined on every edge.
+RxGPs defines three sparse Gaussian process factor nodes. Each node is the GP likelihood factor of one observation, with message passing rules towards every edge.
+
+The rules are variational: each takes the marginals of the other edges. A model therefore
+factorises the variables the nodes share, typically `q(v, w) = q(v)q(w)`, and initialises the
+marginals the first iteration needs, such as `q(w)`. A node's meta is its algorithm, given with
+`where { algorithm = meta }` or `@algorithm`.
 
 ## [Univariate sparse GP node](@id nodes-unisgp)
 
 The [`UniSGP`](@ref) node implements a variational sparse Gaussian process (VSGP) factor for scalar observations. It is the special case of the dID-VSGP node (see [`UniSGP_dID`](@ref)) with an **identity operator** ``\mathcal{L} = \mathcal{I}``, so that the observation is a direct (noisy) evaluation of the latent GP.
 
-The composite node function is obtained by collapsing the GP prior into the observation model (cf. Eq. 22 of the dID-VSGP derivation with ``\mathcal{L} = \mathcal{I}``):
+The composite node function is obtained by collapsing the GP prior into the observation model (Eq. 22 of Ledbetter, Nguyen and de Vries, with ``\mathcal{L} = \mathcal{I}``):
 
 ```math
 \tilde{\phi}(y, x, \mathbf{v}, w, \boldsymbol{\theta})
@@ -54,7 +59,7 @@ UniSGP
 | Edge | Outgoing message | Summary |
 |:-----|:-----------------|:--------|
 | `out` | `NormalMeanPrecision` | Predictive mean from inducing variables projected to the observation |
-| `in` | `ContinuousUnivariateLogPdf` | Backward message for input inference (log-pdf form) |
+| `in` | `ContinuousUnivariateLogPdf` (D = 1) or `ContinuousMultivariateLogPdf` (D ≥ 2) | Backward message for input inference (log-pdf form) |
 | `v` | `MvNormalWeightedMeanPrecision` | Inducing variable update |
 | `w` | `GammaShapeRate` | Gamma update for the noise precision |
 | `θ` | `ContinuousUnivariateLogPdf` or `ContinuousMultivariateLogPdf` | Log-pdf for hyperparameter optimisation |
@@ -65,7 +70,7 @@ UniSGP
 
 The [`UniSGP_dID`](@ref) node implements a **decoupled inter-domain variational sparse Gaussian process** (dID-VSGP) factor. It generalises [`UniSGP`](@ref) by applying an arbitrary deterministic linear operator ``\mathcal{L}`` to the latent GP, so that observations live in the *transformed* space ``\tilde{f}(x) = \mathcal{L} f(x) \in \mathbb{R}^P`` (e.g. gradients, joint function-and-gradient stacks, or differential-equation constraints).
 
-The composite node function (Eq. 22 in the paper) collapses the transformed GP prior into the observation model:
+The composite node function (Eq. 22 of Ledbetter, Nguyen and de Vries) collapses the transformed GP prior into the observation model:
 
 ```math
 \tilde{\phi}(\tilde{\mathbf{y}}, x, \mathbf{v}, W, \boldsymbol{\theta})
@@ -116,7 +121,7 @@ UniSGP_dID
 | Output | `out` | `ℝᴾ` | Observed gradient (or stacked value + gradient) |
 | Input | `in` | `ℝᴰ` | Input location |
 | Inducing variable | `v` | `ℝᴹ` | Transformed inducing variable |
-| Noise precision | `Wg` | `ℝᴾˣᴾ` | Wishart-distributed precision matrix for gradient noise |
+| Noise precision | `Wg` | `ℝᴾˣᴾ` | Precision of the observation noise, a `Wishart` or a `PointMass` |
 | Hyperparameters | `θ` | `ℝᵈ` | Kernel hyperparameters |
 
 ### Message passing rules — UniSGP_dID
@@ -169,7 +174,7 @@ MultiSGP
 | Edge | Symbol | Type | Description |
 |:-----|:-------|:-----|:------------|
 | Output | `out` | `ℝᴰ` | Observed vector output |
-| Input | `in` | `ℝᴰˣ` | Input location |
+| Input | `in` | ``\mathbb{R}^{D_x}`` | Input location, of any dimension |
 | Inducing variable | `v` | `ℝᴰᴹ` | Stacked transformed inducing variables ``K_u^{-1}\mathbf{u}`` |
 | Noise precision | `w` | `ℝᴰˣᴰ` | Wishart-distributed noise precision matrix |
 | Hyperparameters | `θ` | `ℝᵈ` | Kernel hyperparameters |
@@ -179,7 +184,7 @@ MultiSGP
 | Edge | Outgoing message | Summary |
 |:-----|:-----------------|:--------|
 | `out` | `MvNormalMeanPrecision` | Predictive mean via Kronecker-structured projection |
-| `in` | `ContinuousUnivariateLogPdf` or `ContinuousMultivariateLogPdf` | Backward message for input |
+| `in` | `ContinuousMultivariateLogPdf` | Backward message for input |
 | `v` | `MvNormalWeightedMeanPrecision` | Inducing variable update with Kronecker precision |
 | `w` | `WishartFast` | Wishart update for the noise precision |
 | `θ` | `ContinuousMultivariateLogPdf` | Log-pdf for hyperparameters |
@@ -194,6 +199,6 @@ laplace_in_message
 
 Each node also defines its average energy with `@define_average_energy`, the term of the variational free energy (ELBO) the GP factor contributes. RxInfer computes it when inference runs with `free_energy = true`; no user action is required.
 
-## [Node type traits](@id nodes-traits)
+## [Declaration](@id nodes-traits)
 
 Each node is declared with MessagePassingRulesBase's `@define_factor_node`, and its rules with `@define_message_update_rule`, under the node's meta as their algorithm.

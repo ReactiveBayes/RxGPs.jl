@@ -14,7 +14,7 @@ The posterior predictive distribution of the GP, under the operator of `meta`, a
 ```
 
 # Keywords
-- `m_in`: the test inputs, numbers or vectors of length D.
+- `m_in`: the test inputs, a vector of vectors of length D (for `D = 1`, `[[x] for x in xs]`).
 - `q_v`: the marginal of the inducing variables, a multivariate normal.
 - `q_θ`: the kernel hyperparameters: a vector, or a distribution whose mean is used.
 - `meta`: the [`UniSGPMeta`](@ref) the model ran with, built at the same `θ`.
