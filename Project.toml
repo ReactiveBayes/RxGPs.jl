@@ -1,7 +1,7 @@
 name = "RxGPs"
 uuid = "8e06354a-9460-4f50-98fd-90b481720b65"
-version = "1.0.0-DEV"
-authors = ["HoangMHNguyen <m.h.n.hoang@tue.nl>, ofSingularMind <a.h.ledbetter@tue.nl> and contributors"]
+version = "1.0.0"
+authors = ["HoangMHNguyen <m.h.n.hoang@tue.nl>", "ofSingularMind <a.h.ledbetter@tue.nl>", "and contributors"]
 
 [deps]
 BayesBase = "b4ee3484-f114-42fe-b91c-797d54a0c67e"

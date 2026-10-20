@@ -21,7 +21,7 @@ ALL_TMP_FILES = $(DOCS_BUILD_FILES) $(TEST_OUTPUT_FILES)
 .PHONY: docs
 
 doc_init:
-	julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate(); Pkg.precompile();'
+	julia --project=docs -e 'using Pkg; Pkg.instantiate(); Pkg.precompile();'
 
 docs: doc_init ## Generate documentation
 	julia --startup-file=no --project=docs/ docs/make.jl
